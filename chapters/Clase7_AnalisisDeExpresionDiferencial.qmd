@@ -1,0 +1,45 @@
+---
+title: "Análisis de Expresión Diferencial I"
+subtitle: "Licenciatura en Ciencias Genómicas, Transcriptómica, Semestre 2025-2"
+description: "Clase 7 – Análisis bioinformático: Análisis de Expresión Diferencial"
+author:
+- Bernardo Chombo Álvarez
+- David Valle García
+date: last-modified
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-expand: true
+    theme: flatly
+    highlight-style: monokai
+    code-fold: false
+    code-overflow: scroll
+    code-block-border-left: "#31BAE9"
+    code-block-bg: "#011627"
+    page-layout: article
+    fig-align: center
+    df-print: paged
+    code-line-numbers: true
+    code-copy: false
+    css: ../css/styles.css
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  include: true
+  error: false
+  message: false
+fontsize: 11pt
+editor: visual
+mainfont: Calibri
+sansfont: Calibri
+monofont: Calibri
+knitr:
+  opts_chunk:
+    comment: "##"
+  opts_knit:
+    kable: true
+---
+
+prueba 1

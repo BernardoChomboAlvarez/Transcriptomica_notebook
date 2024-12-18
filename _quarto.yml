@@ -1,0 +1,84 @@
+project:
+  type: book
+
+book:
+  title: "Transcriptómica"
+  subtitle: "Licenciatura en Ciencias Genómicas, Semestre 2025-2"
+  author:
+    - Dr. David Valle García
+    - Bernardo Chombo Álvarez
+  date: last-modified
+  chapters:
+    - index.qmd
+    - part: "Prácticas"
+      chapters: 
+        - text: "Alineamiento de Secuencias I"
+          file: chapters/Clase3_AlineamientoDeSecuencias1.qmd
+        - text: "Alineamiento de Secuencias II"
+          file: chapters/Clase4_AlineamientoDeSecuencias2.qmd
+        - text: "Transformación de Formatos"
+          file: chapters/Clase5_TransformacionDeFormatos.qmd
+        - text: "Análisis de Expresión Diferencial"
+          file: chapters/Clase7_AnalisisDeExpresionDiferencial.qmd
+        - text: "Anotación Funcional"
+          file: chapters/Clase8_AnotacionFuncional.qmd
+        - text: "Single-cell RNA-seq"
+          file: chapters/Clase12_SingleCellRNAseq.qmd
+    - part: "Tareas"
+      chapters: 
+        - text: "Tarea 1"
+          file: assignments/Tarea1.qmd
+        - text: "Tarea 2"
+          file: assignments/Tarea2.qmd
+        - text: "Tarea 3"
+          file: assignments/Tarea3.qmd
+        - text: "Tarea 4"
+          file: assignments/Tarea4.qmd
+        - text: "Tarea 5"
+          file: assignments/Tarea5.qmd
+        - text: "Tarea 6"
+          file: assignments/Tarea6.qmd
+    - chapters/references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    number-sections: false
+    self-contained: true
+    toc: true
+    toc-expand: true
+    toc-depth: 3
+    theme: flatly
+    highlight-style: monokai
+    code-fold: false
+    code-overflow: scroll
+    code-block-border-left: "#31BAE9"
+    code-block-bg: "#011627"
+    page-layout: article
+    fig-align: center
+    df-print: paged
+    code-line-numbers: true
+    code-copy: false
+    css: css/styles.css
+  pdf:
+    documentclass: scrreprt
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  include: true
+  error: false
+  message: false
+fontsize: 11pt
+editor: visual
+mainfont: Calibri
+sansfont: Calibri
+monofont: Calibri
+knitr:
+  opts_chunk:
+    comment: "##"
+  opts_knit:
+    kable: true
+website: 
+  favicon: "https://www.lcg.unam.mx/wp-content/uploads/2018/08/lcg_logo_azullcg-square.png"

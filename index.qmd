@@ -1,0 +1,57 @@
+---
+title: "Transcriptómica"
+format:
+    html: 
+      css: css/titlebanner.css
+      embed-resources: true
+execute:
+  echo: true
+html: true
+toc-location: right-body
+toc-title: "Contenido"
+---
+
+# Generalidades {.unnumbered}
+
+Bienvenidx al curso de Transcriptómica en el semestre 2025-2. Aquí encontrarás un resumen con todos los códigos y comandos relevantes vistos en clase. Cada uno de los capítulos se actualizarán después de cada clase. El contenido es una guía para la realización de sus tareas y el proyecto final.
+
+**Datos de profesor y del ayudante:**
+
+-   Dr. David Valle García ([david.valle.edu\@gmail.com](mailto:david.valle.edu@gmail.com))
+-   Bernardo Chombo Álvarez ([bchombo\@lcg.unam.mx](mailto:bchombo@lcg.unam.mx))
+
+**Horario del curso:**
+
+-   Viernes 10:00 - 12:30 p.m. (14 clases)
+
+## Temario
+
+<embed src="../TemarioFinal.pdf" width="700px" height="1020px" />
+
+<br>
+
+## Criterios de evaluación
+
+<embed src="../EvaluacionDelCurso.pdf" width="700px" height="1020px" />
+
+<br>
+
+## Calendario de Actividades
+
+<embed src="../CalendarioDeActividades.pdf" width="700px" height="1020px" />
+
+<br>
+
+## Desempeño
+
+```{=html}
+<iframe width="700" height="500" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vT7iXHenOzCEGUeG5PWfIrYM-qwbO5SFLO33NOp6rwyRsv1k-eAKS1n1DO9xLGS5P7HjHMkJ0pTqLit/pubhtml?gid=0&single=true&headers=false&chrome=false" title="Webpage example"></iframe>
+```
+
+## Referencias
+
+-   Rapaport F, Khanin R, Liang Y, Pirun M, Krek A, Zumbo P, Mason CE, Socci ND, Betel D. Comprehensive evaluation of differential gene expression analysis methods for RNA-seq data. Genome Biol. 2013; 14(9):R95
+-   Jänes J, Hu F, Lewin A, Turro E. A comparative study of RNA-seq analysis strategies. Brief Bioinform. 2015; 16(6):932-40
+-   Conesa A, Madrigal P, Tarazona S, Gomez-Cabrero D, Cervera A, McPherson A, Szcześniak MW, Gaffney DJ, Elo LL, Zhang X, Mortazavi A. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016; 17:13.
+-   Ziegenhain C, Vieth B, Parekh S, Reinius B, Guillaumet-Adkins A, Smets M, Leonhardt H, Heyn H, Hellmann I, Enard W. Comparative Analysis of Single-Cell RNA Sequencing Methods. Mol Cell. 2017; 65(4):631-643.
+-   Stark R, Grzelak M, Hadfield J. RNA sequencing: the teenage years. Nat Rev Genet. 2019; 20(11):631-656

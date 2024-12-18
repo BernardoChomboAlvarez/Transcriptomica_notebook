@@ -1,0 +1,15 @@
+.quarto-title-block {
+    position: relative;       /* Enable positioning for children */
+    padding: 20px;            /* Add padding to the title block */
+    background-color: #27445C; /* Background color */
+    color: white;             /* Text color */
+}
+
+.quarto-title-block .quarto-title-banner {
+    background-image: url(https://www.lcg.unam.mx/wp-content/uploads/2018/08/lcg_logo_azullcg-square.png);
+    background-size: 50px 50px; /* Explicit width and height */
+    background-position: center right; /* Align image to the right edge */
+    background-repeat: no-repeat;
+    padding-right: 60px; /* Ensure space for the image */
+    height: 100px; /* Optional: Set a fixed height for the banner */
+}

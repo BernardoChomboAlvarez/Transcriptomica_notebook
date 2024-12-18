@@ -1,0 +1,254 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Transcriptómica",
+    "section": "",
+    "text": "Generalidades\nBienvenidx al curso de Transcriptómica en el semestre 2025-2. Aquí encontrarás un resumen con todos los códigos y comandos relevantes vistos en clase. Cada uno de los capítulos se actualizarán después de cada clase. El contenido es una guía para la realización de sus tareas y el proyecto final.\nDatos de profesor y del ayudante:\nHorario del curso:",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "Clase3_AlineamientoDeSecuencias1.html",
+    "href": "Clase3_AlineamientoDeSecuencias1.html",
+    "title": "1  Alineamiento de secuencias I",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "Clase4_AlineamientoDeSecuencias2.html",
+    "href": "Clase4_AlineamientoDeSecuencias2.html",
+    "title": "2  Alineamiento de secuencias II",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de secuencias II</span>"
+    ]
+  },
+  {
+    "objectID": "Clase5_TransformacionDeFormatos.html",
+    "href": "Clase5_TransformacionDeFormatos.html",
+    "title": "3  Transformación de formatos | feature counts | creación de pileups",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Transformación de Formatos</span>"
+    ]
+  },
+  {
+    "objectID": "Clase7_AnalisisDeExpresionDiferencial.html",
+    "href": "Clase7_AnalisisDeExpresionDiferencial.html",
+    "title": "4  Análisis de Expresión Diferencial I",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Análisis de Expresión Diferencial</span>"
+    ]
+  },
+  {
+    "objectID": "Clase8_AnotacionFuncional.html",
+    "href": "Clase8_AnotacionFuncional.html",
+    "title": "5  Anotación Funcional",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Anotación Funcional</span>"
+    ]
+  },
+  {
+    "objectID": "Clase12_SingleCellRNAseq.html",
+    "href": "Clase12_SingleCellRNAseq.html",
+    "title": "6  Single-cell RNA-seq",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Single-cell RNA-seq</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#temario",
+    "href": "index.html#temario",
+    "title": "Transcriptómica",
+    "section": "Temario",
+    "text": "Temario",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#criterios-de-evaluación",
+    "href": "index.html#criterios-de-evaluación",
+    "title": "Transcriptómica",
+    "section": "Criterios de evaluación",
+    "text": "Criterios de evaluación",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#calendario-de-actividades",
+    "href": "index.html#calendario-de-actividades",
+    "title": "Transcriptómica",
+    "section": "Calendario de Actividades",
+    "text": "Calendario de Actividades",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html",
+    "title": "Alineamiento de secuencias I",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase4_AlineamientoDeSecuencias2.html",
+    "href": "chapters/Clase4_AlineamientoDeSecuencias2.html",
+    "title": "Alineamiento de secuencias II",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Alineamiento de Secuencias II</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase5_TransformacionDeFormatos.html",
+    "href": "chapters/Clase5_TransformacionDeFormatos.html",
+    "title": "Transformación de formatos | feature counts | creación de pileups",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Transformación de Formatos</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase7_AnalisisDeExpresionDiferencial.html",
+    "href": "chapters/Clase7_AnalisisDeExpresionDiferencial.html",
+    "title": "Análisis de Expresión Diferencial I",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Análisis de Expresión Diferencial</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase8_AnotacionFuncional.html",
+    "href": "chapters/Clase8_AnotacionFuncional.html",
+    "title": "Anotación Funcional",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Anotación Funcional</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase12_SingleCellRNAseq.html",
+    "href": "chapters/Clase12_SingleCellRNAseq.html",
+    "title": "Single-cell RNA-seq",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Single-cell RNA-seq</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#referencias",
+    "href": "index.html#referencias",
+    "title": "Transcriptómica",
+    "section": "Referencias",
+    "text": "Referencias\n\nRapaport F, Khanin R, Liang Y, Pirun M, Krek A, Zumbo P, Mason CE, Socci ND, Betel D. Comprehensive evaluation of differential gene expression analysis methods for RNA-seq data. Genome Biol. 2013; 14(9):R95\nJänes J, Hu F, Lewin A, Turro E. A comparative study of RNA-seq analysis strategies. Brief Bioinform. 2015; 16(6):932-40\nConesa A, Madrigal P, Tarazona S, Gomez-Cabrero D, Cervera A, McPherson A, Szcześniak MW, Gaffney DJ, Elo LL, Zhang X, Mortazavi A. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016; 17:13.\nZiegenhain C, Vieth B, Parekh S, Reinius B, Guillaumet-Adkins A, Smets M, Leonhardt H, Heyn H, Hellmann I, Enard W. Comparative Analysis of Single-Cell RNA Sequencing Methods. Mol Cell. 2017; 65(4):631-643.\nStark R, Grzelak M, Hadfield J. RNA sequencing: the teenage years. Nat Rev Genet. 2019; 20(11):631-656",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea1.html",
+    "href": "assignments/Tarea1.html",
+    "title": "Tarea 1",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Tarea 1</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea6.html",
+    "href": "assignments/Tarea6.html",
+    "title": "Tarea 6",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Tarea 6</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#desempeño",
+    "href": "index.html#desempeño",
+    "title": "Transcriptómica",
+    "section": "Desempeño",
+    "text": "Desempeño",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea2.html",
+    "href": "assignments/Tarea2.html",
+    "title": "Tarea 2",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Tarea 2</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea3.html",
+    "href": "assignments/Tarea3.html",
+    "title": "Tarea 3",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Tarea 3</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea4.html",
+    "href": "assignments/Tarea4.html",
+    "title": "Tarea 4",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Tarea 4</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea5.html",
+    "href": "assignments/Tarea5.html",
+    "title": "Tarea 5",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Tarea 5</span>"
+    ]
+  }
+]
