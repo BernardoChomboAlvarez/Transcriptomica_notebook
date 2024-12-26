@@ -4,69 +4,9 @@
     "href": "index.html",
     "title": "Transcriptómica",
     "section": "",
-    "text": "Generalidades\nBienvenidx al curso de Transcriptómica en el semestre 2025-2. Aquí encontrarás un resumen con todos los códigos y comandos relevantes vistos en clase. Cada uno de los capítulos se actualizarán después de cada clase. El contenido es una guía para la realización de sus tareas y el proyecto final.\nDatos de profesor y del ayudante:\nHorario del curso:",
+    "text": "Generalidades\nBienvenidx al curso de Transcriptómica en el semestre 2025-2. Aquí encontrarás un resumen con todos los códigos y comandos relevantes vistos en clase. Cada uno de los capítulos se actualizarán después de cada clase. El contenido es una guía para la realización de sus tareas y el proyecto final.\nDatos de profesor y del ayudante:\nHorario del curso:\nAsesorías o dudas puntuales\nSi el alumno tiene dudas puntuales, por favor ingrese al siguiente link: Agendar reunión",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
-    ]
-  },
-  {
-    "objectID": "Clase3_AlineamientoDeSecuencias1.html",
-    "href": "Clase3_AlineamientoDeSecuencias1.html",
-    "title": "1  Alineamiento de secuencias I",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
-    ]
-  },
-  {
-    "objectID": "Clase4_AlineamientoDeSecuencias2.html",
-    "href": "Clase4_AlineamientoDeSecuencias2.html",
-    "title": "2  Alineamiento de secuencias II",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de secuencias II</span>"
-    ]
-  },
-  {
-    "objectID": "Clase5_TransformacionDeFormatos.html",
-    "href": "Clase5_TransformacionDeFormatos.html",
-    "title": "3  Transformación de formatos | feature counts | creación de pileups",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Transformación de Formatos</span>"
-    ]
-  },
-  {
-    "objectID": "Clase7_AnalisisDeExpresionDiferencial.html",
-    "href": "Clase7_AnalisisDeExpresionDiferencial.html",
-    "title": "4  Análisis de Expresión Diferencial I",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Análisis de Expresión Diferencial</span>"
-    ]
-  },
-  {
-    "objectID": "Clase8_AnotacionFuncional.html",
-    "href": "Clase8_AnotacionFuncional.html",
-    "title": "5  Anotación Funcional",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Anotación Funcional</span>"
-    ]
-  },
-  {
-    "objectID": "Clase12_SingleCellRNAseq.html",
-    "href": "Clase12_SingleCellRNAseq.html",
-    "title": "6  Single-cell RNA-seq",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Single-cell RNA-seq</span>"
     ]
   },
   {
@@ -100,14 +40,45 @@
     ]
   },
   {
+    "objectID": "index.html#desempeño",
+    "href": "index.html#desempeño",
+    "title": "Transcriptómica",
+    "section": "Desempeño",
+    "text": "Desempeño",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#referencias",
+    "href": "index.html#referencias",
+    "title": "Transcriptómica",
+    "section": "Referencias",
+    "text": "Referencias\n\nRapaport F, Khanin R, Liang Y, Pirun M, Krek A, Zumbo P, Mason CE, Socci ND, Betel D. Comprehensive evaluation of differential gene expression analysis methods for RNA-seq data. Genome Biol. 2013; 14(9):R95\nJänes J, Hu F, Lewin A, Turro E. A comparative study of RNA-seq analysis strategies. Brief Bioinform. 2015; 16(6):932-40\nConesa A, Madrigal P, Tarazona S, Gomez-Cabrero D, Cervera A, McPherson A, Szcześniak MW, Gaffney DJ, Elo LL, Zhang X, Mortazavi A. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016; 17:13.\nZiegenhain C, Vieth B, Parekh S, Reinius B, Guillaumet-Adkins A, Smets M, Leonhardt H, Heyn H, Hellmann I, Enard W. Comparative Analysis of Single-Cell RNA Sequencing Methods. Mol Cell. 2017; 65(4):631-643.\nStark R, Grzelak M, Hadfield J. RNA sequencing: the teenage years. Nat Rev Genet. 2019; 20(11):631-656",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+    ]
+  },
+  {
     "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html",
     "href": "chapters/Clase3_AlineamientoDeSecuencias1.html",
     "title": "Alineamiento de secuencias I",
     "section": "",
-    "text": "prueba 1",
+    "text": "1. Analizar y limpiar archivos .fastq con FASTQC\nEl software FASTQC sirve para analizar y limpiar archivos .fastq de acuerdo a su calidad. Se puede descargar directamente desde la página https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ o bien si eres usuario de Linux lo puedes hacer de la siguiente forma:\n## Direct installation\nsudo apt -y install fastqc\n\n## Conda installation\nconda update conda\nconda create --name fastqc_env\nconda activate fastqc_env\nconda install -c bioconda fastqc\nPara entender qué es lo que FASTQC está haciendo, es necesario entender la sintaxis de los archivos .fastq",
     "crumbs": [
       "Prácticas",
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html#analizar-y-limpiar-archivos-.fastq-con-fastqc",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html#analizar-y-limpiar-archivos-.fastq-con-fastqc",
+    "title": "Alineamiento de secuencias I",
+    "section": "",
+    "text": "1.1 Nomenclatura\nLos archivos se nombran con el nombre de la muestra y el número del nombre de la muestra (int) : samplename_S1_L001_R1_001.fastq.gz\ndonde:\n\nsamplename: nombre de la muestra\nS1: índice de la muestra\nL001: número del carril del secuenciador\nR1: la lectura (read). Cuando son archivos paired-end debe de haber al menos un R1 y R2\n001: EL último segmento siempre es 001\n.gz: los archivos siempre se van a guardar en el formato GNU zip\n\n\n\n1.2 Formato\nCada entrada en un archivo de FASTQ consiste en las siguientes 4 líneas:\n\nIdentificador de la secuencia (empezando con @)\nSecuencia\nLínea identificadora del score de calidad (+)\nScore de calidad. Estos están codificados en formato Phred +33, donde usan caracteres ASCII para representar los valores numéricos de los scores de calidad.\n\n\n@SIM:1:FCX:1:15:6329:1045 1:N:0:2\nTCGCACTCAACGCCCTGCATATGACAAGACAGAATC\n+\n&lt;&gt;;##=&gt;&lt;9=AAAAAAAAAA9#:&lt;#&lt;;&lt;&lt;&lt;????#=\n\nEl quality score o score de calidad expresa la probabilidad de un error. Dada A, el quality score de A, Q(A), expresa la probabilidad de que A no sea cierta, P(~A), de acuerdo a la siguiente relación:\n\\[\nQ(A) = 10log10(P(~A))\n\\]\nSi se calculan los quality scores podemos obtener la siguiente relación:\n\n\n\nQuality Score, Q(A)\nError probability, P(~A)\n\n\n\n\n10\n0.1\n\n\n20\n0.01\n\n\n30\n0.001\n\n\n\nQuality Score encoding\nPara entender la 4ta línea es necesario conocer los valores ASCII y sus equivalencias\n\n\n\nSymbol\nASCII Code\nQ-Score\n\n\n\n\n!\n33\n0\n\n\n”\n34\n1\n\n\n#\n35\n2\n\n\n$\n36\n3\n\n\n%\n37\n4\n\n\n&\n38\n5\n\n\n’\n39\n6\n\n\n(\n40\n7\n\n\n)\n41\n8\n\n\n*\n42\n9\n\n\n+\n43\n10\n\n\n,\n44\n11\n\n\n-\n45\n12\n\n\n.\n46\n13\n\n\n/\n47\n14\n\n\n0\n48\n15\n\n\n1\n49\n16\n\n\n2\n50\n17\n\n\n3\n51\n18\n\n\n4\n52\n19\n\n\n5\n53\n20\n\n\n6\n54\n21\n\n\n7\n55\n22\n\n\n8\n56\n23\n\n\n9\n57\n24\n\n\n:\n58\n25\n\n\n;\n59\n26\n\n\n&lt;\n60\n27\n\n\n=\n61\n28\n\n\n&gt;\n62\n29\n\n\n?\n63\n30\n\n\n@\n64\n31\n\n\nA\n65\n32\n\n\nB\n66\n33\n\n\nC\n67\n34\n\n\nD\n68\n35\n\n\nE\n69\n36\n\n\nF\n70\n37\n\n\nG\n71\n38\n\n\nH\n72\n39\n\n\nI\n73\n40\n\n\n\n\n\n1.3 Propósito\nEl propósito general y más simplificado de FASTQC se puede resumir en los siguientes 4 puntos:\n\nImportar datos de archivos .fastq (aunque también puede aceptar archivos de alineamiento .bam y .sam)\nRápida identificación de posibles problemas de la secuenciación\nGráficos y tablas que resumen los datos de forma accesible\nExportación de los resultados en formato HTML\n\nEn el caso de que se haga con raw data:\n\nIdentificar errores de la secuenciación\nIdentificar secuencias contaminantes sobre representadas\nEntendimiento de la complejidad de la librería (contaminación de rRNA, duplicaciones)\nRepresentación adecuada del organismo por el porcentaje de %GC reportado (si hay sobre representación de genes, puede no ser útil)\n\nPara más información relacionada con casos puntuales como los errores de secuenciación, consultar las referencias.",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
     ]
   },
   {
@@ -129,7 +100,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Prácticas",
-      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Transformación de Formatos</span>"
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Transformación de Formatos</span>"
     ]
   },
   {
@@ -140,7 +111,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Prácticas",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Análisis de Expresión Diferencial</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Análisis de Expresión Diferencial</span>"
     ]
   },
   {
@@ -151,7 +122,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Prácticas",
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Anotación Funcional</span>"
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Anotación Funcional</span>"
     ]
   },
   {
@@ -162,17 +133,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Prácticas",
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Single-cell RNA-seq</span>"
-    ]
-  },
-  {
-    "objectID": "index.html#referencias",
-    "href": "index.html#referencias",
-    "title": "Transcriptómica",
-    "section": "Referencias",
-    "text": "Referencias\n\nRapaport F, Khanin R, Liang Y, Pirun M, Krek A, Zumbo P, Mason CE, Socci ND, Betel D. Comprehensive evaluation of differential gene expression analysis methods for RNA-seq data. Genome Biol. 2013; 14(9):R95\nJänes J, Hu F, Lewin A, Turro E. A comparative study of RNA-seq analysis strategies. Brief Bioinform. 2015; 16(6):932-40\nConesa A, Madrigal P, Tarazona S, Gomez-Cabrero D, Cervera A, McPherson A, Szcześniak MW, Gaffney DJ, Elo LL, Zhang X, Mortazavi A. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016; 17:13.\nZiegenhain C, Vieth B, Parekh S, Reinius B, Guillaumet-Adkins A, Smets M, Leonhardt H, Heyn H, Hellmann I, Enard W. Comparative Analysis of Single-Cell RNA Sequencing Methods. Mol Cell. 2017; 65(4):631-643.\nStark R, Grzelak M, Hadfield J. RNA sequencing: the teenage years. Nat Rev Genet. 2019; 20(11):631-656",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Single-cell RNA-seq</span>"
     ]
   },
   {
@@ -183,28 +144,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Tareas",
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Tarea 1</span>"
-    ]
-  },
-  {
-    "objectID": "assignments/Tarea6.html",
-    "href": "assignments/Tarea6.html",
-    "title": "Tarea 6",
-    "section": "",
-    "text": "prueba 1",
-    "crumbs": [
-      "Tareas",
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Tarea 6</span>"
-    ]
-  },
-  {
-    "objectID": "index.html#desempeño",
-    "href": "index.html#desempeño",
-    "title": "Transcriptómica",
-    "section": "Desempeño",
-    "text": "Desempeño",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Transcriptómica</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Tarea 1</span>"
     ]
   },
   {
@@ -215,7 +155,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Tareas",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Tarea 2</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Tarea 2</span>"
     ]
   },
   {
@@ -226,7 +166,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Tareas",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Tarea 3</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Tarea 3</span>"
     ]
   },
   {
@@ -237,7 +177,7 @@
     "text": "prueba 1",
     "crumbs": [
       "Tareas",
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Tarea 4</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Tarea 4</span>"
     ]
   },
   {
@@ -248,7 +188,62 @@
     "text": "prueba 1",
     "crumbs": [
       "Tareas",
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Tarea 5</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Tarea 5</span>"
+    ]
+  },
+  {
+    "objectID": "assignments/Tarea6.html",
+    "href": "assignments/Tarea6.html",
+    "title": "Tarea 6",
+    "section": "",
+    "text": "prueba 1",
+    "crumbs": [
+      "Tareas",
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Tarea 6</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html#alineamiento-con-genomas-conocidos",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html#alineamiento-con-genomas-conocidos",
+    "title": "Alineamiento de secuencias I",
+    "section": "2. Alineamiento con genomas conocidos",
+    "text": "2. Alineamiento con genomas conocidos\n\n2.1 Bowtie2\nIdeal para lecturas de al menos 50 bp (&lt; 50 deben de usar bowtie1). EL default es un alineamiento end-to-end y funciona mejor cuando el ya se cortaron por cuestiones\nde calidad y para remover secuencias de adaptadores. De no haber limpiado previamente los reads se recomienda hacer soft-clipping el cual ignora las porciones a los exremos de las reads y le asigna una penalización menor a las bases no alineadas.\nManual bowtie2\n\n2.1.1 Construcción de un index\n\nbowtie2-build &lt;path_to_reference_genome.fa&gt; &lt;prefix_to_name_indexes&gt;\n\n\n\n2.1.2 Alineamiento\nArgumentos importantes para el alineamiento con Bowtie2:\n\n-p: number of cores\n-q: reads are in FASTQ format\n--local: local alignment feature to perform soft-clipping\n-x: /path/to/genome_indices_directory\n-U: /path/to/FASTQ_file\n-S: /path/to/output/SAM_file\n-N: number of mismatches allowed in a seed\n-L: length of the seed substrings to align\n-k: searches for the k best valid alignments\n-m: maixmum number of alignments\n--best: best alignments only\n--strata: alignments in the best stratum only\n\n\n## Create bowtie2 directory results\nmkdir ~/transcriptomica/results/bowtie2\n\n## Run bowtie2\nbowtie2 -p 10 -q -N 0 -L 18 -m 10 --best --strata \\\n-x ~/path/to/bowtie_indexes/mm10 \\\n-U ~/path/to/FASTQ_file.fastq.gz \\\n-S ~/path/to/output/SAM_file.sam\n\n\n\n\n\n2.2 hisat2\nUn alineamiento con hisat2 requiere de un archivo .fasta y de un archivo .gtf o .gff3\nManual hisat2\n\n2.2.1 Construcción de un index\nPuede crear un index de genomas de cualquier tamaño.\n\n## Build index\nhisat2-build [options]* &lt;reference_in&gt; &lt;ht2_base&gt;\n\n\n\n2.2.2 Alineamiento\nArgumentos importantes para el alineamiento con Bowtie2:\n\n-q: print the wall-clock time required to load the index files and align the reads.\n-5: trim 5 bases from 3’ (right) end of each read before alignment.\n-3: trim 3 bases from 3’ (right) end of each read before alignment.\n-p: number of cores\n-k: search for the k distinct primary alignments for each read.\n-t: reads (,,) are in FASTQ format\n-u: align the first u reads or read pairs from the input\n--phred33: input qualities are ASCII chars equal to the Phred quality plus 33\n--tmo: report only those alignments within known transcripts\n--no-mixed: y default, when hisat2 cannot find a concordant or discordant alignment for a pair, it then tries to find alignments for the individual mates. This option disables that behavior.\n--no-discordant: by default, hisat2 looks for discordant alignments if it cannot find any concordant alignments. A discordant alignment is an alignment where both mates align uniquely, but that does not satisfy the paired-end constraints (–fr/–rf/–ff, -I, -X). This option disables that behavior.\n--rna-strandness: specify strand-specific information: the default is unstranded. For single-end reads, use F or R.\n--no-unal: suppress SAM records for reads that failed to align.\n--remove-chrname: remove ‘chr’ from reference names in alignment\n--add-chrname: add ‘chr’ to reference names in alignment\n-x: the basename of the index for the reference genome.\n-1: &lt;m1&gt;\n-2: &lt;m2&gt;\n-U: comma-separated list of files containing unpaired reads to be aligned\n-S: /path/to/output/SAM_file\n\n\n## Build index\nhisat2 -x ~/path/to/index_genes/ -1 &lt;read1&gt; -2 &lt;read2&gt; -p 10 \\\n-S ~/path/to/output/SAM_file.sam --mto --phred33",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html#bowtie2",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html#bowtie2",
+    "title": "Alineamiento de secuencias I",
+    "section": "2.1 Bowtie2",
+    "text": "2.1 Bowtie2\nIdeal para lecturas de al menos 50 bp (&lt; 50 deben de usar bowtie1). EL default es un alineamiento end-to-end y funciona mejor cuando el ya se cortaron por cuestiones de calidad y para remover secuencias de adaptadores. De no haber limpiado previamente los reads se recomienda hacer soft-clipping el cual ignora las porciones a los exremos de las reads y le asigna una penalización menor a las bases no alineadas.\n\n\n2.1.1 Construcción de un index\n\nbowtie2-build &lt;path_to_reference_genome.fa&gt; &lt;prefix_to_name_indexes&gt;\n\n\n\n\n2.1.2 Alineamiento\nArgumentos importantes para el alineamiento con Bowtie2:\n\n-p: number of cores\n-q: reads are in FASTQ format\n--local: local alignment feature to perform soft-clipping\n-x: /path/to/genome_indices_directory\n-U: /path/to/FASTQ_file\n-S: /path/to/output/SAM_file\n-N: number of mismatches allowed in a seed\n-L: length of the seed substrings to align\n-k: searches for the k best valid alignments\n-m: maixmum number of alignments\n--best: best alignments only\n--strata: alignments in the best stratum only\n\n\n## Create bowtie2 directory results\nmkdir ~/transcriptomica/results/bowtie2\n\n## Run bowtie2\nbowtie2 -p 10 -q -N 0 -L 18 -m 10 --best --strata \\\n-x ~/path/to/bowtie_indexes/mm10 \\\n-U ~/path/to/FASTQ_file.fastq.gz \\\n-S ~/path/to/output/SAM_file.sam",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html#hisat2",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html#hisat2",
+    "title": "Alineamiento de secuencias I",
+    "section": "2.2 hisat2",
+    "text": "2.2 hisat2",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/Clase3_AlineamientoDeSecuencias1.html#referencias",
+    "href": "chapters/Clase3_AlineamientoDeSecuencias1.html#referencias",
+    "title": "Alineamiento de secuencias I",
+    "section": "Referencias",
+    "text": "Referencias\n\nhttps://help.basespace.illumina.com/files-used-by-basespace/fastq-files\nhttps://help.basespace.illumina.com/files-used-by-basespace/fastq-files\nhttps://hbctraining.github.io/Training-modules/planning_successful_rnaseq/lessons/QC_raw_data.html#:\\~:text=The%20FASTQ%20file%20format%20is,begins%20with%20a%20header%20line\nhttps://hbctraining.github.io/Intro-to-ChIPseq-flipped/lessons/04_alignment_using_bowtie2.html\nhttps://daehwankimlab.github.io/hisat2/manual/",
+    "crumbs": [
+      "Prácticas",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Alineamiento de Secuencias I</span>"
     ]
   }
 ]
