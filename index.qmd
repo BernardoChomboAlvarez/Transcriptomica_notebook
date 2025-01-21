@@ -30,19 +30,19 @@ Si el alumno tiene dudas puntuales, por favor ingrese al siguiente link: [Agenda
 
 ## Temario
 
-<embed src="../TemarioFinal.pdf" width="700px" height="1020px" />
+<embed src="./files/TemarioFinal.pdf" width="700px" height="1020px" />
 
 <br>
 
 ## Criterios de evaluación
 
-<embed src="../EvaluacionDelCurso.pdf" width="700px" height="1020px" />
+<embed src="./files/EvaluacionDelCurso.pdf" width="700px" height="1020px" />
 
 <br>
 
 ## Calendario de Actividades
 
-<embed src="../CalendarioDeActividades.pdf" width="700px" height="1020px" />
+<embed src="./files/CalendarioDeActividades.pdf" width="700px" height="1020px" />
 
 <br>
 

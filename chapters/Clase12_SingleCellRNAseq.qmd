@@ -42,4 +42,817 @@ knitr:
     kable: true
 ---
 
-prueba 1
+## 1. Motivación
+
+### 1.1 ¿Qué es *scRNA-seq*?
+
+El scRNA-seq (secuenciación de ARN unicelular) es una técnica que permite medir la expresión génica a nivel de células individuales. Esto contrasta con los métodos tradicionales (como el bulk RNA-seq), que miden la expresión como un promedio de todas las células en una muestra.
+
+### 1.2 ¿Para qué sirve?
+
+scRNA-seq se utiliza para:
+
+-   Identificar subpoblaciones celulares en tejidos heterogéneos.
+
+-   Estudiar diferencias en la expresión génica entre células individuales.
+
+-   Investigar procesos dinámicos como la diferenciación celular o respuestas al estrés.
+
+-   Reconstruir trayectorias celulares en tiempo o espacio.
+
+### 1.3 Diferencias entre *bulk RNA-seq* y *scRNA-seq*
+
+| **Característica** | **scRNA-seq** | **Bulk RNA-seq** |
+|------------------|---------------------------|---------------------------|
+| **Resolución** | Nivel unicelular | Promedio de todas las células en la muestra |
+| **Volumen de datos** | Más grande debido al análisis de miles de células | Menor, ya que es una única medición por muestra |
+| **Ruido técnico** | Más elevado (dropouts, captura limitada de ARN) | Menor, ya que integra señales de muchas células |
+| **Análisis de heterogeneidad** | Posible (subpoblaciones y trayectorias celulares) | No posible (mezcla de señales celulares) |
+| **Costo** | Generalmente más alto | Generalmente más bajo |
+
+### 1.4 Análisis de *scRNA-seq* con *SingleCellExperiment (SCE)*
+
+SingleCellExperiment es una clase de datos especializada en BioConductor para trabajar con datos de scRNA-seq:
+
+-   **Carga de datos:** Los datos se almacenan en un objeto `SingleCellExperiment`.
+
+-   **Preprocesamiento:** Incluye normalización, filtrado de células/géneros y corrección de efectos técnicos.
+
+-   **Análisis avanzado:** Se pueden integrar con paquetes como *scater* (visualización) y *scran* (análisis de grupos celulares, clustering).
+
+-   **Integración:** Compatible con otros flujos de trabajo en R y otros paquetes de BioConductor.
+
+#### 1.4.1 Estructura
+
+-   `assays`: Almacena las matrices de datos, como las cuentas de expresión crudas (counts), normalizadas (logcounts), etc.
+
+-   `colData`: Contiene metadatos relacionados con las células, como tipos celulares, calidad, etc.
+
+-   `rowData`: Contiene información sobre las características (genes), como IDs, descripciones, etc.
+
+-   `reducedDims`: Almacena datos de dimensionalidad reducida (PCA, UMAP, t-SNE).
+
+-   `metadata`: Información adicional sobre el experimento.
+
+-   `altExps` (opcional): Almacena datos alternativos, como ARN de características específicas (ej., ADT para scRNA-seq multi-ómics).
+
+### 1.5 Ánalisis de *scRNA-seq* con *Seurat*
+
+Seurat es un paquete ampliamente utilizado para análisis de scRNA-seq:
+
+-   **Pipeline completo:** Desde preprocesamiento hasta clustering, visualización y análisis diferencial.
+
+-   **Integración multi-ómics:** Seurat permite analizar datos de scRNA-seq combinados con otros tipos de datos.
+
+-   **Visualización:** Herramientas como UMAP y t-SNE para reducir dimensiones y detectar patrones celulares.
+
+#### 1.5.1 Estructura
+
+-   `assays`: Almacena los datos de expresión en distintos niveles de procesamiento (RNA, integraciones, etc.).
+
+-   `meta.data`: Contiene metadatos de las células, como identificadores de clúster, etiquetas de tipo celular, etc.
+
+-   `reductions`: Almacena los resultados de métodos de reducción de dimensiones (PCA, UMAP, t-SNE).
+
+-   `graphs`: Contiene gráficos derivados, como los usados para clustering basado en redes.
+
+-   `commands`: Almacena el historial de los comandos utilizados para procesar el objeto.
+
+-   `tools`: Información adicional, como resultados de análisis diferenciales o integraciones.
+
+### 1.6 Comparación entre SCE y *Seurat*
+
+| **Aspecto** | **SingleCellExperiment (SCE)** | **Seurat** |
+|------------------|----------------------------|--------------------------|
+| **Plataforma principal** | R (BioConductor) | R y Python |
+| **Estructura de datos** | Basada en la clase `SingleCellExperiment` de BioConductor | Basada en la clase `SeuratObject` |
+| **Facilidad de uso** | Mayor curva de aprendizaje debido a su modularidad | Más intuitivo y directo, especialmente para principiantes |
+| **Pipeline integrado** | Requiere integración de múltiples paquetes (scater, scran) | Incluye todo en un solo paquete: preprocesamiento, clustering, visualización |
+| **Flexibilidad** | Altamente flexible y compatible con el ecosistema de BioConductor | Enfocado en análisis estándar, con menos opciones para personalización profunda |
+| **Análisis de clustering** | Herramientas avanzadas con scran y otros paquetes | Integrado directamente con métodos optimizados |
+| **Visualización** | Herramientas básicas con scater | Visualización avanzada (UMAP, t-SNE, DimPlot) |
+| **Multi-ómics** | Limitado a la integración mediante otros paquetes | Integración nativa de datos multi-ómics (por ejemplo, scRNA-seq + ATAC-seq) |
+| **Escalabilidad** | Más eficiente en memoria para grandes conjuntos de datos | Requiere más memoria, especialmente con conjuntos de datos muy grandes |
+| **Soporte técnico** | Comunidad fuerte dentro del ecosistema BioConductor | Amplia comunidad de usuarios y documentación accesible |
+| **Interoperabilidad** | Compatible con otros paquetes de BioConductor | Menos interoperable fuera del ecosistema Seurat |
+| **Análisis diferencial** | Depende de herramientas externas como limma y edgeR | Incluido como parte del flujo de trabajo |
+| **Costo computacional** | Más eficiente para cálculos intensivos | Requiere mayor capacidad computacional |
+| **Facilidad de instalación** | Puede ser más complejo debido a dependencias de BioConductor | Fácil de instalar con CRAN o directamente desde GitHub |
+
+### 1.7 Pipeline general para el análisis de datos de *scRNA-seq*
+
+<img src="../images/scRNAseq_pipeline.png" alt="https://doi.org/10.1007/978-1-0716-1307-8_19" width="700px"/>
+
+El pipeline general para el análisis de datos de *scRNA-seq* involucra una serie de pasos. Posterior al procesamiento de los reads, se procede a hacer un filtrado de las células en base a sus conteos y número de genes; se realiza una normalización de los datos y si es necesario una correción de *batch* (que es cuando se tiene en una misma matriz de datos el resultado de dos o más experimentos de secuenciación). Posterior a eso se seleccionan los **genes altamente variables** (HVG's) y se realiza una reducción de dimensionalidad. Posterior a eso, se realiza una clusterización de las células. Una vez hecho esto se anotan las células para darles una identidad biológica en base a sus genes marcadores. Finalmente se pueden hacer otros experimentos como RNA velocity, Psuedotime y Gene dynamics.
+
+Para hacer el análisis se va a emplear el dataset de ejemplo de 10XGenomics [PBMC4k](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k) el cual es de libre acceso. Vamos a descargar los datos.
+
+```{r}
+#| output: FALSE
+#| include: TRUE
+
+## Install remotes
+if (!requireNamespace("remotes", quietly = TRUE)) {
+    install.packages("remotes")
+}
+
+## Install BioConductor if not installed yet
+if (!requireNamespace("BiocManager",quietly = TRUE)) {
+    remotes::install_cran("BiocManager")
+}
+
+BiocManager::version()
+
+## Download the data
+bfc <- BiocFileCache::BiocFileCache()
+raw.path <- BiocFileCache::bfcrpath(bfc,file.path(
+    "http://cf.10xgenomics.com/samples",
+    "cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz"
+))
+untar(raw.path,exdir = file.path(tempdir(),"pbmc4k"))
+
+## Define the path as a global variable
+pbmc4k.path <- file.path(tempdir(),"pbmc4k/raw_gene_bc_matrices/GRCh38")
+```
+
+<br>
+
+## 2. Bioconductor *SingleCellExperiment*
+
+### 2.1 Load libraries
+
+Check if libraries are installed
+
+```{r}
+#| eval: FALSE
+
+## List of required libraries
+libs <- c("SingleCellExperiment","scRNAseq","AnnotationHub","scater","scran","BiocFileCache","DropletUtils","Matrix","PCAtools","EnsDb.Hsapiens.v86","clustree","celldex","SingleR","AUCell","GSEABase","pheatmap")
+
+# Check and install missing libraries
+for (lib in libs) {
+    if (!requireNamespace(lib, quietly = TRUE)) {
+        message(paste("Installing", lib))
+        
+        if (startsWith(lib, "EnsDb.") || lib %in% c("scRNAseq", "AnnotationHub", "scater", "scran", "BiocFileCache", "DropletUtils", "celldex", "SingleR", "AUCell", "GSEABase")) {
+            BiocManager::install(lib,quiet = TRUE, ask = FALSE)
+        } else
+            install.packages(lib, quiet = TRUE)
+    } else
+        message(paste(lib, "is already installed"))
+}
+```
+
+Load libraries
+
+```{r}
+#| output: FALSE
+
+## Load libraries
+library(scRNAseq)
+library(AnnotationHub)
+library(scater)
+library(scran)
+library(BiocFileCache)
+library(DropletUtils)
+library(Matrix)
+library(PCAtools)
+library(EnsDb.Hsapiens.v86)
+library(clustree)
+library(celldex)
+library(SingleR)
+library(AUCell)
+library(GSEABase)
+library(pheatmap)
+```
+
+### 2.2 Create SCE object
+
+```{r}
+## As its an output of 10XGenomics we can read it with 
+## the FxN read10xCounts from DropletUtils
+sce.pbmc <- read10xCounts(pbmc4k.path,col.names = TRUE)
+sce.pbmc
+```
+
+### 2.3 Add annotations
+
+Se tienen que unificar los features debido a que puede que haya duplicados dado que un mismo ENSEMBLID puede estar asignado a uno o más *symbols* (que son los nombre genéricos de los genes). Esta función es muy útil para extraer los metadatos de los genes. Literalmente es como si se pudiera descargar el archivo GTF.
+
+```{r}
+## Chromosome annotation
+rownames(sce.pbmc) <- uniquifyFeatureNames(
+    rowData(sce.pbmc)$ID,rowData(sce.pbmc)$Symbol
+)
+chr.loc <- AnnotationDbi::mapIds(EnsDb.Hsapiens.v86,
+                                 keys = rowData(sce.pbmc)$ID,
+                                 keytype = "GENEID",
+                                 column = "SEQNAME")
+head(chr.loc,5)
+```
+
+### 2.4 Pre-filtering
+
+El ***droplet detection*** se realiza para identificar cuáles de los millones de gotas generadas durante la preparación de la muestra contienen células reales (biológicas) y cuáles contienen únicamente ruido o artefactos técnicos. Este paso es crucial porque la tecnología de droplet-based scRNA-seq (como 10x Genomics Chromium) puede capturar tanto células individuales como gotas vacías o gotas con ARN ambiental.
+
+En el análisis de **droplet detection** de scRNA-seq, se utiliza un enfoque basado en Monte Carlo para generar una distribución de p-valores que nos ayude a diferenciar entre las gotas con señales reales de las que solo contienen ruido. Aquí se aplica la idea de que, para cada gota, las distribuciones de las lecturas de ARN en una gota vacía deben seguir una distribución esperada si la gota no tiene una célula real.
+
+La corrección de **Benjamini-Hochberg (BH)** se utiliza para controlar la **tasa de falsos descubrimientos (FDR)** cuando se realizan múltiples pruebas estadísticas. En este contexto, se aplica después de calcular los p-valores de Monte Carlo para las gotas.
+
+Dado que estamos realizando muchas pruebas para cada gota (una por cada gota en el experimento), es importante corregir los p-valores para evitar obtener resultados falsos positivos debido a múltiples comparaciones.
+
+Este enfoque permite mejorar la precisión del análisis de scRNA-seq al reducir el impacto del ruido técnico y asegurarse de que los resultados reflejan datos biológicos reales.
+
+La semilla es esencial para fines de reproducibilidad.
+
+**Total UMI count**
+
+```{r}
+#| echo: FALSE
+#| output: TRUE
+
+bcrank <- barcodeRanks(counts(sce.pbmc))
+
+# Only showing unique points for plotting speed.
+uniq <- !duplicated(bcrank$rank)
+plot(bcrank$rank[uniq], bcrank$total[uniq], log="xy",
+    xlab="Rank", ylab="Total UMI count", cex.lab=1.2)
+
+abline(h=metadata(bcrank)$inflection, col="darkgreen", lty=2)
+abline(h=metadata(bcrank)$knee, col="dodgerblue", lty=2)
+
+legend("bottomleft", legend=c("Inflection", "Knee"), 
+        col=c("darkgreen", "dodgerblue"), lty=2, cex=1.2)
+```
+
+```{r}
+## Droplet detection
+set.seed(100)
+e.out <- emptyDrops(counts(sce.pbmc))
+
+## See ?emptyDrops for an explanation of why there are NA values.
+summary(e.out$FDR <= 0.001)
+
+sce.pbmc <- sce.pbmc[,which(e.out$FDR <= 0.001)]
+sce.pbmc
+
+## Limited: whether the or not the computed p-value for a particular barcode is bounded by the number of iterations.
+table(Sig=e.out$FDR <= 0.001, Limited=e.out$Limited)
+```
+
+### 2.5 Quality Control (QC)
+
+Aquí se calculas las métricas de control de calidad para las células.
+
+-   `perCellQCMetrics()`: Esta función calcula diversas métricas de calidad por célula en el objeto `SingleCellExperiment` (`sce.pbmc`). Las métricas más comunes incluyen el número de genes detectados por célula, el total de lecturas, el porcentaje de ARN mitocondrial, etc.
+
+-   `subsets = list(MT = which(chr.loc == "MT"))`: Aquí, se está especificando que se debe calcular el porcentaje de lecturas que provienen de genes mitocondriales.
+
+    -   `which(chr.loc == "MT")`: Esta parte identifica los índices de las características (genes) que corresponden al cromosoma mitocondrial. Esto permite calcular qué proporción del ARN proviene de genes mitocondriales.
+
+    -   El resultado es un objeto `stats` que contiene las métricas de calidad para cada célula, incluyendo el porcentaje de ARN mitocondrial.
+
+-   `isOutlier()`: Esta función detecta células que tienen valores atípicos para la métrica especificada (en este caso, el porcentaje de ARN mitocondrial). Se utiliza aquí para identificar las células con un porcentaje de ARN mitocondrial **inusualmente alto**.
+
+    -   `stats$subsets_MT_percent`: Esto extrae el porcentaje de ARN mitocondrial para cada célula del objeto `stats`.
+
+    -   `type = "higher"`: Este parámetro indica que se buscan valores atípicos **altos**. En este caso, se está buscando identificar células que tienen un **alto porcentaje de ARN mitocondrial**, lo que puede ser indicativo de estrés celular o de células que no están viables.
+
+Antes se tiene que checar cuál es el estado de las células
+
+```{r}
+#| include: FALSE
+#| output: FALSE
+
+unfiltered <- sce.pbmc
+```
+
+```{r}
+## Quality Control
+stats <- perCellQCMetrics(sce.pbmc,
+                          subsets = list(MT = which(chr.loc == "MT")))
+high.mito <- isOutlier(stats$subsets_MT_percent,type = "higher")
+sce.pbmc <- sce.pbmc[,!high.mito]
+sce.pbmc
+
+## SUmmary of high mitocondrial trnascripts
+summary(high.mito)
+```
+
+```{r}
+#| output: TRUE
+#| echo: FALSE
+
+colData(unfiltered) <- cbind(colData(unfiltered), stats)
+unfiltered$discard <- high.mito
+
+gridExtra::grid.arrange(
+    plotColData(unfiltered, y="sum", colour_by="discard") +
+        scale_y_log10() + ggtitle("Total count"),
+    plotColData(unfiltered, y="detected", colour_by="discard") +
+        scale_y_log10() + ggtitle("Detected features"),
+    plotColData(unfiltered, y="subsets_MT_percent",
+        colour_by="discard") + ggtitle("Mito percent"),
+    ncol=2
+)
+
+plotColData(unfiltered, x="sum", y="subsets_MT_percent",
+    colour_by="discard") + scale_x_log10()
+
+plot(stats$sum, stats$subsets_MT_percent, log="x",
+    xlab="Total count", ylab='Mitochondrial %')
+abline(h=attr(high.mito, "thresholds")["higher"], col="red")
+```
+
+#### 2.6 Normalization
+
+La normalización es crucial en los datos de *scRNA-seq* porque:
+
+-   Las células pueden tener diferentes números de lecturas debido a diversos factores técnicos, como la eficiencia de captura de ARN o la cantidad de ARN disponible en cada célula.
+
+-   Sin normalización, las células con más lecturas tendrán una ventaja artificial, lo que podría sesgar el análisis.
+
+-   Al normalizar y aplicar la transformación logarítmica, se asegura que las diferencias observadas reflejan más las diferencias biológicas entre las células que las diferencias técnicas.
+
+<!-- -->
+
+-   `quickCluster()`: Esta función realiza un **clustering rápido de las células** basándose en sus perfiles de expresión génica. El propósito de este paso es agrupar las células en clusters o grupos que tengan perfiles de expresión similares. Estos clusters se usarán posteriormente para calcular los factores de normalización, que ayudan a corregir las diferencias técnicas entre células.
+
+-   `clusters`: Este objeto almacena los clusters identificados. La función utiliza un enfoque jerárquico para agrupar las células de forma que las células dentro de un mismo grupo sean lo más similares posibles entre sí, mientras que las células de diferentes grupos serán lo más distintas posible.
+
+-   `computeSumFactors()`: Esta función calcula los **factores de normalización** para cada célula. Los factores de normalización se utilizan para corregir las diferencias en la cantidad de ARN total capturado entre las células. Esto es importante porque, aunque las células tengan diferentes cantidades de ARN, estas diferencias no siempre reflejan diferencias biológicas.
+
+    -   El argumento `cluster = clusters` indica que el cálculo de los factores de normalización se debe hacer dentro de los grupos (clusters) identificados previamente. Esto permite una normalización más precisa al tomar en cuenta las variaciones técnicas dentro de cada cluster, en lugar de normalizar todas las células de manera global.
+
+    -   `computeSumFactors()` usa el método de **sumFactors**, que es una técnica popular en análisis de datos de single-cell RNA-seq para ajustar las diferencias de secuenciación entre células, utilizando los clusters de células con expresión similar.
+
+-   `logNormCounts()`: Esta función aplica una **transformación logarítmica** a los conteos normalizados de cada célula. Después de que los factores de normalización han sido calculados y aplicados a los datos, se toma el logaritmo de los conteos normalizados. Esto se hace por varias razones:
+
+    -   **Reducción de la variabilidad**: Los conteos de ARN en células individuales pueden variar en varios órdenes de magnitud. Aplicar el logaritmo reduce esta variabilidad y hace que las diferencias entre los genes sean más manejables.
+
+    -   **Distribución más normal**: Los datos de RNA-seq suelen tener una distribución sesgada. El logaritmo de los conteos normalizados ayuda a transformar la distribución a una forma más cercana a una distribución normal, lo cual es preferible para muchos métodos estadísticos y de análisis.
+
+```{r}
+## Normalization
+set.seed(1000)
+clusters <- quickCluster(sce.pbmc)
+sce.pbmc <- computeSumFactors(sce.pbmc,
+                              cluster = clusters)
+sce.pbmc <- logNormCounts(sce.pbmc)
+sce.pbmc
+```
+
+### 2.7 Highly Variable Genes (HVG's)
+
+Este proceso es crucial para reducir la dimensionalidad de los datos, ya que los análisis posteriores (como PCA, clustering, o análisis diferencial) se realizarán solo sobre estos genes seleccionados. Los HVGs se consideran informativos porque reflejan la diversidad biológica entre las células y no tanto el ruido técnico.
+
+-   `dec.pbmc <- modelGeneVarByPoisson(sce.pbmc)`:
+
+    -   Aquí, se ajusta un modelo basado en el supuesto de una distribución de Poisson para modelar la varianza génica.
+
+    -   `modelGeneVarByPoisson` utiliza la media esperada y asume que la varianza sigue la distribución de Poisson (donde la varianza es igual a la media). Si se observa varianza adicional, esto indica que hay factores biológicos (y no solo ruido técnico) contribuyendo a esa variabilidad.
+
+    -   El objeto resultante, `dec.pbmc`, es un marco de datos que contiene estadísticas como la media, la varianza observada y la varianza esperada para cada gen, además de la "varianza residual" (exceso de varianza).
+
+-   `hvg.pbmc <- getTopHVGs(dec.pbmc, prop = 0.1)`:
+
+    -   **`getTopHVGs`** selecciona los genes con mayor varianza residual. En este caso, se selecciona el **10% de los genes** más variables (proporción especificada con `prop = 0.1`).
+
+    -   El resultado, `hvg.pbmc`, es un vector con los nombres de los genes considerados como HVGs.
+
+Existen otras alternativas para calcular la varianza donde se asumen otro tipo de distribuciones como una binomial negativa.
+
+-   `modelGeneVar`: En lugar de asumir una distribución de Poisson, esta función estima la varianza génica usando una distribución basada en la media esperada pero permitiendo una dispersión superior, como en una distribución negativa binomial. Esto es más realista para datos de scRNA-seq, donde la dispersión suele ser mayor que la que predice una Poisson pura.
+
+```{r}
+## Variable Genes
+set.seed(1001)
+dec.pbmc <- modelGeneVar(sce.pbmc)
+hvg.pbmc <- getTopHVGs(dec.pbmc,prop = 0.1)
+head(hvg.pbmc,5)
+```
+
+### 2.8 Dimensionality Reduction
+
+-   **PCA (Análisis de Componentes Principales)**:
+
+    -   Proyecta los datos en componentes ortogonales que explican la mayor parte de la varianza.
+
+    -   Es útil para filtrar ruido y trabajar con los componentes principales más informativos.
+
+    -   Frecuentemente es el primer paso en muchos análisis (por ejemplo, clustering y visualización).
+
+    -   Limitación: Lineal, no siempre captura relaciones no lineales complejas.
+
+-   **t-SNE (t-distributed Stochastic Neighbor Embedding)**:
+
+    -   Técnica no lineal para proyectar datos en 2 o 3 dimensiones.
+
+    -   Se utiliza principalmente para la visualización, resaltando la proximidad de células en un espacio reducido.
+
+    -   No es ideal para análisis cuantitativos o clustering directo, ya que la distancia en el espacio t-SNE no siempre refleja relaciones cuantitativas precisas.
+
+-   **UMAP (Uniform Manifold Approximation and Projection)**:
+
+    -   Similar a t-SNE, pero conserva mejor las relaciones globales y locales en los datos.
+
+    -   Se utiliza ampliamente para visualización y también como entrada para clustering.
+
+    -   Es más rápido y escalable que t-SNE.
+
+```{r}
+## Dimensionality reduction
+set.seed(10000)
+sce.pbmc <- denoisePCA(sce.pbmc,
+                       subset.row = hvg.pbmc,
+                       technical = dec.pbmc
+                       )
+set.seed(100000)
+sce.pbmc <- runTSNE(sce.pbmc,dimred = "PCA")
+
+set.seed(100000)
+sce.pbmc <- runUMAP(sce.pbmc,dimred = "PCA")
+```
+
+### 2.9 Clustering
+
+Se necesita agrupar las células para identificar a las poblaciones celulares dentro del dataset.
+
+-   `buildSNNGraph`: Esta función construye un **grafo de vecinos más cercanos (SNN, por sus siglas en inglés)** basado en la similitud entre las células, utilizando una matriz de distancias o similitudes. El grafo resultante captura las relaciones entre las células según su proximidad en un espacio de características (en este caso, el espacio de reducción de dimensionalidad).
+
+<!-- -->
+
+-   `sce.pbmc`: Es el objeto `SingleCellExperiment` que contiene los datos de expresión génica de las células.
+
+-   `k = 10`: Es el número de vecinos más cercanos que se consideran al construir el grafo. Es decir, para cada célula, se encuentran las 10 células más similares basadas en las características (en este caso, las componentes principales de la PCA).
+
+-   `use.dimred = "PCA"`: Esto indica que el grafo se construirá en base a las componentes principales (PCA) previamente calculadas, no sobre los datos originales de expresión génica. Usar un espacio reducido de dimensionalidad como PCA ayuda a reducir el ruido técnico y mejora la eficiencia computacional.
+
+-   `igraph::cluster_walktrap(g)`: Utiliza el algoritmo **Walktrap** para realizar el clustering basado en el grafo de vecinos más cercanos.
+
+    -   **Walktrap** es un algoritmo de clustering de grafos que busca identificar grupos de nodos (en este caso, células) que están fuertemente conectados entre sí. La idea es realizar una caminata aleatoria en el grafo y ver qué nodos (células) se visitan juntos con mayor frecuencia, lo que indica que son parte del mismo grupo.
+
+<!-- -->
+
+-   `$membership`: El resultado del algoritmo es un objeto que indica a qué grupo (o clúster) pertenece cada célula. Este vector de pertenencia se guarda en `clust`.
+
+```{r}
+## Clustering
+g <- buildSNNGraph(sce.pbmc,
+                   k = 10,
+                   use.dimred = "PCA")
+clust <- igraph::cluster_walktrap(g)$membership
+sce.pbmc$cluster <- factor(clust)
+```
+
+Plotting
+
+```{r}
+## PCA
+plotReducedDim(sce.pbmc,
+               dimred = "PCA",
+               colour_by="cluster") +
+    ggtitle("Default PCA")
+
+## UMAP
+plotReducedDim(sce.pbmc,
+               dimred = "UMAP",
+               colour_by="cluster") +
+    ggtitle("Default UMAP")
+
+## t-SNE
+plotReducedDim(sce.pbmc,
+               dimred = "TSNE",
+               colour_by="cluster") +
+    ggtitle("Default t-SNE")
+```
+
+### 2.10 Cell type Annotation
+
+La **anotación de poblaciones celulares** en datos de **scRNA-seq** (secuenciación de ARN de células individuales) es fundamental para identificar y caracterizar subpoblaciones celulares dentro de una muestra. Este proceso permite asignar etiquetas específicas a las células según sus perfiles de expresión génica, facilitando la comprensión de la heterogeneidad celular y la identificación de tipos celulares o estados funcionales particulares.
+
+**Importancia de la anotación de poblaciones celulares en scRNA-seq:**
+
+1.  **Identificación de tipos y estados celulares:** La anotación precisa permite reconocer diferentes tipos celulares y sus estados funcionales, lo que es esencial para comprender procesos biológicos complejos y enfermedades.
+
+2.  **Comprensión de la heterogeneidad celular:** Ayuda a desentrañar la variabilidad entre células, revelando subpoblaciones que podrían ser relevantes en contextos fisiológicos o patológicos.
+
+3.  **Interpretación de datos de expresión génica:** Facilita la interpretación de patrones de expresión génica al asociar perfiles específicos con tipos celulares conocidos.
+
+4.  **Integración de datos de diferentes fuentes:** La anotación estandarizada permite combinar datos de diferentes experimentos o plataformas, enriqueciendo el análisis global.
+
+**Métodos para la anotación de células utilizando correlaciones de Spearman y genes marcadores:**
+
+Una estrategia efectiva para la anotación de células implica el uso de correlaciones de rangos de Spearman y genes marcadores específicos. Este enfoque se puede desglosar en los siguientes pasos:
+
+1.  **Asignación inicial de etiquetas basada en correlaciones de Spearman:**
+
+    -   Se calculan las correlaciones de Spearman entre los perfiles de expresión génica de las células en el conjunto de datos y las muestras de referencia de tipos celulares conocidos.
+
+    -   Las células se etiquetan según las muestras de referencia con las correlaciones de rangos más altas, asignándoles el tipo celular correspondiente.
+
+2.  **Reducción de ruido mediante identificación de genes marcadores:**
+
+    -   Para minimizar la influencia de genes que podrían introducir ruido, se identifican genes marcadores específicos entre pares de etiquetas en las muestras de referencia.
+
+    -   Se recalculan las correlaciones utilizando únicamente estos genes marcadores, enfocándose en las características más distintivas de cada tipo celular.
+
+3.  **Afinamiento de la anotación mediante correlaciones adicionales:**
+
+    -   Se realiza un ajuste fino repitiendo las correlaciones, pero esta vez utilizando solo los genes marcadores de las etiquetas con el mejor puntaje de correlación.
+
+    -   Este proceso ayuda a resolver ambigüedades entre etiquetas similares al eliminar el ruido de genes irrelevantes para otras etiquetas, mejorando la precisión de la anotación.
+
+```{r}
+## Using the reference
+ref <- celldex::BlueprintEncodeData()
+
+## Use built-in references
+pred <- SingleR(test = sce.pbmc,
+                ref = ref,
+                labels = ref$label.main)
+
+## Plot the per-cell and label scores
+plotScoreHeatmap(pred)
+
+## Label pruning
+sum(is.na(pred$pruned.labels))
+plotScoreHeatmap(pred,
+                 show.pruned = TRUE)
+
+## Plot distribution
+plotScoreDistribution(pred)
+```
+
+### 2.10.1 Identifying genes driving annotation
+
+```{r}
+sce.pbmc$labels <- pred$labels
+all.markers <- metadata(pred)$de.genes
+lab <- "B-cells"
+
+## Get the top 10 marker genes for B-cells
+top.markers <- Reduce(union,sapply(all.markers[[lab]], head,10))
+
+plotHeatmap(sce.pbmc,
+            order_columns_by = "labels",
+            features = top.markers,
+            center = TRUE,
+            zlim = c(-3,3),
+            main = lab)
+```
+
+### 2.10.2 Comparing labels to clusters
+
+```{r}
+## Order the heatmap by cluster
+plotScoreHeatmap(pred,
+                 clusters = sce.pbmc$cluster,
+                 order.by.cluster = TRUE)
+
+## Compare labels to clusters
+tab <- table(Assigned = pred$pruned.labels,
+             Cluster = sce.pbmc$cluster)
+tab
+
+## Add labels to TSNE
+plotTSNE(sce.pbmc,
+         colour_by = "labels",
+         text_by = "labels")
+
+## Now color by cluster
+plotTSNE(sce.pbmc,
+         colour_by = "cluster",
+         text_by = "labels")
+```
+
+Adicionalmente se recomienda realizar un Análisis de Expresión Diferencial (DEA) o de Abundancia Diferencial ya que nos permite obtener mayor resolución biológica que experimentos convencionales de bulk RNA-seq, sobretodo si se pueden asociar cambios de expresión a nivel de poblaciones celulares.
+
+<br>
+
+## 3. Seurat
+
+Los pasos aquí son mucho más simples.
+
+### 3.1 Load libraries
+
+Install libraries
+
+```{r}
+#| output: FALSE
+
+## Install the needed libs
+libs <- c("patchwork","batchelor","Seurat")
+for (lib in libs) {
+    if (!requireNamespace(lib, quietly = TRUE)) {
+        BiocManager::install(lib,quiet = TRUE, ask = FALSE)
+    }
+}
+
+## Load libraries
+library(BiocFileCache)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+### 3.2 Create Seurat object
+
+```{r}
+## Load the PBMC dataset
+pbmc.data <- Read10X(data.dir = pbmc4k.path)
+
+## Initialize the Seurat object with the raw (non-normalized data).
+pbmc <- CreateSeuratObject(counts = pbmc.data, project = "pbmc4k", min.cells = 3, min.features = 200)
+
+dim(pbmc)
+head(rownames(pbmc))
+head(colnames(pbmc))
+```
+
+Explore Seurat object
+
+```{r}
+names(pbmc)
+
+## Check the only assay
+pbmc[["RNA"]]
+
+## Get some assay data
+GetAssayData(object = pbmc, layer = "counts")[1:3, 1:3]
+
+## Access metadata
+head(pbmc@meta.data)
+
+## We can also acces like this
+head(pbmc[[c("nCount_RNA", "nFeature_RNA")]])
+
+## Passing `drop = TRUE` will turn the meta data into a names vector
+## with each entry being named for the cell it corresponds to
+head(pbmc[["nCount_RNA", drop = TRUE]])
+```
+
+### 3.3 Quality Control (QC)
+
+```{r}
+## Add mitochondrial stats
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+
+## Quality control metrics
+VlnPlot(pbmc, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+plot1 <- FeatureScatter(pbmc, feature1 = "nCount_RNA", feature2 = "percent.mt")
+plot2 <- FeatureScatter(pbmc, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+plot1 + plot2
+
+## Filter cells
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
+
+head(pbmc@meta.data, 5)
+```
+
+### 3.4 Normalization
+
+```{r}
+#| output: FALSE
+
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
+```
+
+### 3.5 Highly Variable Genes (HVG's)
+
+```{r}
+#| output: FALSE
+## Gene detection
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+
+## Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(pbmc), 10)
+top10
+```
+
+```{r}
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc)
+
+## When using repel, set xnudge and ynudge to 0 for optimal results
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+
+plot1 + plot2
+```
+
+### 3.6 Data Scaling
+
+```{r}
+#| output: FALSE
+
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
+```
+
+### 3.7 Lineal Dimensionality Reduction
+
+```{r}
+#| output: FALSE
+
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+```
+
+Plot
+
+```{r}
+print(pbmc[["pca"]], dims = 1:5, nfeatures = 5)
+
+VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
+DimPlot(pbmc, reduction = "pca")
+DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
+DimHeatmap(pbmc, dims = 1:15, cells = 500, balanced = TRUE)
+```
+
+#### 3.6.1 Choose Principal Components
+
+```{r}
+#| output: FALSE
+
+pbmc <- JackStraw(pbmc, num.replicate = 100)
+pbmc <- ScoreJackStraw(pbmc, dims = 1:20)
+```
+
+Plot
+
+```{r}
+JackStrawPlot(pbmc, dims = 1:15)
+ElbowPlot(pbmc)
+```
+
+### 3.7 Clustering
+
+```{r}
+#| output: FALSE
+pbmc <- FindNeighbors(pbmc, dims = 1:10)
+## Computing nearest neighbor graph
+## Computing SNN
+pbmc <- FindClusters(pbmc, resolution = 0.5)
+```
+
+### 3.8 Non-lineal DImensionality Reduction
+
+```{r}
+#| output: FALSE
+
+pbmc <- RunUMAP(pbmc, dims = 1:10)
+pbmc <- RunTSNE(pbmc,dims = 1:10)
+```
+
+Plot
+
+```{r}
+DimPlot(pbmc, reduction = "umap")
+DimPlot(pbmc, reduction = "tsne")
+```
+
+### 3.8 Cluster Marker Genes
+
+```{r}
+#| output: FALSE
+
+## find markers for every cluster compared to all remaining cells, report only the positive ones
+pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+pbmc.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 2, wt = avg_log2FC)
+cluster0.markers <- FindMarkers(pbmc, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
+```
+
+Plot
+
+```{r}
+VlnPlot(pbmc, features = c("MS4A1", "CD79A"))
+
+FeaturePlot(pbmc, features = c(
+    "MS4A1", "GNLY", "CD3E", "CD14", "FCER1A", "FCGR3A", "LYZ", "PPBP",
+    "CD8A"
+))
+
+pbmc.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 10, wt = avg_log2FC) -> top10
+DoHeatmap(pbmc, features = top10$gene) + NoLegend()
+```
+
+### 3.8 Cell type Annotation
+
+Se puede integrar con `SingleR` pero no es tan fácil.
+
+```{r}
+DimPlot(pbmc, reduction = "tsne", label = TRUE, pt.size = 0.5) + NoLegend()
+```
+
+## Reproducibilidad
+
+```{r}
+#| echo: FALSE
+
+sessioninfo::session_info()
+```

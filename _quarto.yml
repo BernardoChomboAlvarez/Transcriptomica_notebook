@@ -38,9 +38,6 @@ book:
           file: assignments/Tarea5.qmd
         - text: "Tarea 6"
           file: assignments/Tarea6.qmd
-    - chapters/references.qmd
-
-bibliography: references.bib
 
 format:
   html:

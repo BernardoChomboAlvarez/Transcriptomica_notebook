@@ -180,51 +180,62 @@ En el caso de que se haga con *raw data*:
 
 <br>
 
-## 2. Alineamiento con genomas conocidos
+## 2. Alineamiento con genomas anotados
 
-### 2.1 Bowtie2
+<img src="../images/Class3_img1.png" alt="Description of image" width="700px"/>
 
-Ideal para lecturas de al menos 50 bp (\< 50 deben de usar bowtie1). EL default es un alineamiento *end-to-end* y funciona mejor cuando el ya se cortaron por cuestiones
+Por lo general se emplean estos alineadores cuando se considera splicing.
 
-de calidad y para remover secuencias de adaptadores. De no haber limpiado previamente los *reads* se recomienda hacer ***soft-clipping*** el cual ignora las porciones a los exremos de las *reads* y le asigna una penalización menor a las bases no alineadas.
+### 2.1 STAR (Spliced Transcripts Alignment to a Reference)
 
-[Manual bowtie2](https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml)
+Requiere del genoma de referencia en formato fasta y de un archivo de anotación .gtf.
+
+[Manual STAR](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf)
 
 #### 2.1.1 Construcción de un index
 
+Argumentos básicos para la construcción de un index con **STAR**:
+
+-   `--runThreadN`: number of cores
+-   `--runMode`: genomeGenerate mode
+-   `--genomeDir`: /path/to/store/genome_indices
+-   `--genomeFastaFiles`: /path/to/FASTA_file
+-   `--sjdbGTFfile`: /path/to/GTF_file
+-   `--sjdbOverhang`: readlength -1
+
 ```{bash}
 #| eval: false
-bowtie2-build <path_to_reference_genome.fa> <prefix_to_name_indexes>
+## Create index wiht STAR
+STAR --runThreadN 6 \
+--runMode genomeGenerate \
+--genomeDir chr1_hg38_index \
+--genomeFastaFiles /n/groups/hbctraining/intro_rnaseq_hpc/reference_data_ensembl38/Homo_sapiens.GRCh38.dna.chromosome.1.fa \
+--sjdbGTFfile /n/groups/hbctraining/intro_rnaseq_hpc/reference_data_ensembl38/Homo_sapiens.GRCh38.92.gtf \
+--sjdbOverhang 99
 ```
 
 #### 2.1.2 Alineamiento
 
-Argumentos importantes para el alineamiento con **Bowtie2**:
+Argumentos importantes para el alineamiento con **STAR**:
 
--   `-p`: number of cores
--   `-q`: reads are in FASTQ format
--   `--local`: local alignment feature to perform soft-clipping
--   `-x`: /path/to/genome_indices_directory
--   `-U`: /path/to/FASTQ_file
--   `-S`: /path/to/output/SAM_file
--   `-N`: number of mismatches allowed in a seed
--   `-L`: length of the seed substrings to align
--   `-k`: searches for the *k* best valid alignments
--   `-m`: maixmum number of alignments
--   `--best`: best alignments only
--   `--strata`: alignments in the best stratum only
+-   `--runThreadN`: number of cores
+-   `--readFilesIn`: /path/to/FASTQ_file
+-   `--genomeDir`: /path/to/genome_indices
+-   `--outFileNamePrefix`: prefix for all output files
+-   `--outSAMtype`: output filetype (SAM default)
+-   `--outSAMunmapped`: what to do with unmapped reads
+-   `--outFilterMultimapNmax`: maximum number of multiple alignments (default 10)
 
 ```{bash}
 #| eval: false
-## Create bowtie2 directory results
-mkdir ~/transcriptomica/results/bowtie2
-
-## Run bowtie2
-bowtie2 -p 10 -q -N 0 -L 18 -m 10 --best --strata \
--x ~/path/to/bowtie_indexes/mm10 \
--U ~/path/to/FASTQ_file.fastq.gz \
--S ~/path/to/output/SAM_file.sam
-
+## Run STAR
+STAR --genomeDir /n/groups/hbctraining/intro_rnaseq_hpc/reference_data_ensembl38/ensembl38_STAR_index/ \
+--runThreadN 6 \
+--readFilesIn Mov10_oe_1.subset.fq \
+--outFileNamePrefix ../results/STAR/Mov10_oe_1_ \
+--outSAMtype BAM SortedByCoordinate \
+--outSAMunmapped Within \
+--outSAMattributes Standard 
 ```
 
 <br>
@@ -250,8 +261,8 @@ hisat2-build [options]* <reference_in> <ht2_base>
 Argumentos importantes para el alineamiento con **Bowtie2**:
 
 -   `-q`: print the wall-clock time required to load the index files and align the reads.
--   `-5`: trim 5 bases from 3’ (right) end of each read before alignment.
--   `-3`: trim 3 bases from 3’ (right) end of each read before alignment.
+-   `-5`: trim *n* bases from 5’ (left) end of each read before alignment.
+-   `-3`: trim *n* bases from 3’ (right) end of each read before alignment.
 -   `-p`: number of cores
 -   `-k`: search for the *k* distinct primary alignments for each read.
 -   `-t`: reads (<m1>,<m2>,<a>) are in FASTQ format
@@ -260,7 +271,7 @@ Argumentos importantes para el alineamiento con **Bowtie2**:
 -   `--tmo`: report only those alignments within known transcripts
 -   `--no-mixed`: y default, when hisat2 cannot find a concordant or discordant alignment for a pair, it then tries to find alignments for the individual mates. This option disables that behavior.
 -   `--no-discordant`: by default, hisat2 looks for discordant alignments if it cannot find any concordant alignments. A discordant alignment is an alignment where both mates align uniquely, but that does not satisfy the paired-end constraints (--fr/--rf/--ff, -I, -X). This option disables that behavior.
--   `--rna-strandness`: specify strand-specific information: the default is unstranded. For single-end reads, use F or R.
+-   `--rna-strandness`: specify stra-5nd-specific information: the default is unstranded. For single-end reads, use F or R.
 -   `--no-unal`: suppress SAM records for reads that failed to align.
 -   `--remove-chrname`: remove ‘chr’ from reference names in alignment
 -   `--add-chrname`: add ‘chr’ to reference names in alignment
@@ -283,6 +294,9 @@ hisat2 -x ~/path/to/index_genes/ -1 <read1> -2 <read2> -p 10 \
 
 -   <https://help.basespace.illumina.com/files-used-by-basespace/fastq-files>
 -   <https://help.basespace.illumina.com/files-used-by-basespace/fastq-files>
--   [https://hbctraining.github.io/Training-modules/planning_successful_rnaseq/lessons/QC_raw_data.html#:\\\~:text=The%20FASTQ%20file%20format%20is,begins%20with%20a%20header%20line](https://hbctraining.github.io/Training-modules/planning_successful_rnaseq/lessons/QC_raw_data.html#:\~:text=The%20FASTQ%20file%20format%20is,begins%20with%20a%20header%20line){.uri}
+-   [https://hbctraining.github.io/Training-modules/planning_successful_rnaseq/lessons/\
+    QC_raw_data.html#:\\\~:text=The%20FASTQ%20file%20format%20is,begins%20with%\
+    20a%20header%20line](https://hbctraining.github.io/Training-modules/planning_successful_rnaseq/lessons/QC_raw_data.html#:~:text=The%20FASTQ%20file%20format%20is,begins%20with%20a%20header%20line){.uri}
 -   <https://hbctraining.github.io/Intro-to-ChIPseq-flipped/lessons/04_alignment_using_bowtie2.html>
 -   <https://daehwankimlab.github.io/hisat2/manual/>
+-   <https://hbctraining.github.io/Intro-to-rnaseq-hpc-O2/lessons/03_alignment.html>

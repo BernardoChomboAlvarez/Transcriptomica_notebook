@@ -42,4 +42,1029 @@ knitr:
     kable: true
 ---
 
-prueba 1
+```{r}
+#| echo: false
+
+plotVolcano <- function(df,lfc_col="log2FoldChange",pval_col="pval",adjpval_col="padj",plot_title="Volcano Plot") {
+    alpha <- 0.05 # Threshold on the adjusted p-value
+    cols <- densCols(df[[lfc_col]], -log10(df[[pval_col]]))
+    plot(df[[lfc_col]],-log10(df[[adjpval_col]]), col=cols, panel.first=grid(),
+         main=plot_title, xlab="Effect size: log2(fold-change)", ylab="-log10(adjusted p-value)",
+         pch=20, cex=0.6)
+    abline(v=0)
+    abline(v=c(-1,1), col="brown")
+    abline(h=-log10(alpha), col="brown")
+    
+    gn.selected <- abs(df[[lfc_col]]) > 2.5 & df[[adjpval_col]] < alpha 
+    text(df[[lfc_col]][gn.selected],
+         -log10(df[[adjpval_col]])[gn.selected],
+         lab=df$SYMBOL[gn.selected ], cex=0.4)
+    
+    return(TRUE)
+}
+```
+
+## 1. Motivación
+
+El análisis de expresión diferencial identifica genes o moléculas con cambios significativos en sus niveles de expresión bajo diferentes condiciones, como enfermedades o tratamientos. Es crucial para comprender mecanismos biológicos, descubrir biomarcadores, desarrollar terapias dirigidas y avanzar en la medicina personalizada. En bioinformática, el DEA permite procesar y analizar grandes volúmenes de datos de tecnologías como RNA-Seq o microarrays, ayudando a identificar patrones clave en redes biológicas. Su importancia radica en generar conocimiento sobre enfermedades, guiar investigaciones y acelerar el desarrollo de herramientas diagnósticas y terapéuticas.
+
+### 1.1 Setup de datos
+
+Vamos a usar este set de datos: <https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE63310&format=file>
+
+```{r}
+## Download data
+url <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE63310&format=file"
+utils::download.file(url = url,
+                     destfile = "GSE63310.tar",
+                     mode = "wb")
+utils::untar(tarfile = "GSE63310.tar",
+             exdir = file.path(tempdir(),"GSE63310"))
+
+## Unzip files
+files <- c("GSM1545535_10_6_5_11.txt", "GSM1545536_9_6_5_11.txt", "GSM1545538_purep53.txt",
+  "GSM1545539_JMS8-2.txt", "GSM1545540_JMS8-3.txt", "GSM1545541_JMS8-4.txt",
+  "GSM1545542_JMS8-5.txt", "GSM1545544_JMS9-P7c.txt", "GSM1545545_JMS9-P8c.txt")
+for(i in paste(files, ".gz", sep=""))
+  R.utils::gunzip(file.path(tempdir(),"GSE63310/",i), overwrite=TRUE)
+```
+
+## 2. EdgeR / Limma
+
+`EdgeR` es una librería de R que se usa para realizar análisis de expresión diferencial de genes provenientes de datos de *RNA-seq*. Esta librería emplea métodos estadísticos para experimentos multigrupo basados en modelos lineares generalizados (*generalized linear models: glms*) los cuales son eficientes para experimentos multifactoriales independientemente de su complejidad. También implementa métodos Bayesianos que permiten la estimación de la variación biológica genética-específica, incluso para experimentos con los mínimos niveles de replicación biológica.
+
+-   [Documentación (EdgeR)](https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf)
+-   DOI: <https://doi.org/10.1093/bioinformatics/btp616>
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
+if (!require(edgeR, quietly = TRUE))
+    BiocManager::install("edgeR",quiet = TRUE)
+```
+
+`Limma` es una librería de R que fue creada para el ánalisis de expresión diferencial para datos provenientes de microarreglos. Usa principalmente modelos lineales para experimentos multigrupos.
+
+-   [Documentación (limma)](https://bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf)
+-   DOI: <https://doi.org/10.1093/nar/gkv007>
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
+if (!require(limma, quietly = TRUE))
+    BiocManager::install("limma",quiet = TRUE)
+```
+
+### 2.1 Load libraries
+
+```{r}
+suppressPackageStartupMessages(library(limma))
+suppressPackageStartupMessages(library(Glimma))
+suppressPackageStartupMessages(library(edgeR))
+suppressPackageStartupMessages(library(Mus.musculus))
+```
+
+### 2.2 Read files
+
+```{r}
+x <- readDGE(file.path(tempdir(),"GSE63310/",files),
+             columns = c(1,3))
+class(x)
+dim(x)
+```
+
+#### 2.2.1 Reorganize information
+
+```{r}
+## Assign sample type and sample names
+samplenames <- substring(colnames(x),67)
+samplenames
+
+colnames(x) <- samplenames
+group <- as.factor(c("LP", "ML", "Basal", "Basal", "ML", "LP",
+                     "Basal", "ML", "LP"))
+x$samples$group <- group
+lane <- as.factor(rep(c("L004","L006","L008"), c(3,4,2)))
+x$samples$lane <- lane
+x$samples
+```
+
+#### 2.2.2 Add gene names
+
+```{r}
+genes <- AnnotationDbi::select(Mus.musculus,
+                        keys = rownames(x),
+                        columns = c("SYMBOL","TXCHROM"),
+                        keytype = "ENTREZID")
+
+## Remove duplicates
+genes <- genes[!duplicated(genes$ENTREZID),]
+head(genes)
+
+## Add genes
+x$genes <- genes
+x
+```
+
+### 2.3 Data preprocessing
+
+```{r}
+## counts per million
+cpm.obj <- cpm(x)
+
+## log counts per million transformation
+lcpm.obj <- cpm(x, log = TRUE)
+
+## Mean and median
+L <- mean(x$samples$lib.size) * 1e-6
+M <- median(x$samples$lib.size) * 1e-6
+c(L, M)
+
+## The average library size is about 45.5 million and the minimum
+## log-CPM should be log2(2/45.5) = -4.51 which means that
+## a count of 0 maps to a log-CPM value of -4.51
+summary(lcpm.obj)
+```
+
+### 2.4 Remove genes that are lowly expressed
+
+```{r}
+## Remove all the genes that have 0 counts across the nine samples
+table(rowSums(x$counts==0)==9)
+
+## Filter by expression
+keep.exprs <- filterByExpr(x,group = group)
+x <- x[keep.exprs,,keep.lib.sizes=FALSE]
+dim(x)
+```
+
+### 2.5 Normalize gene expression
+
+Se necesita normalizar debido a que los datos de RNA-Seq contienen sesgos técnicos y biológicos que pueden distorsionar los resultados si no se corrigen. Las razones principales para normalizar son: diferencias de profundidad de secuenciación, diferencias en la composición génica, comparabilidad entre muestras, impacto de la longitud de los genes, preparación para métodos estadísticos.
+
+**Métodos comunes de normalización**:
+
+-   TMM (Trimmed Mean of M-values): Corrige la profundidad de secuenciación y la composición génica.
+-   RPKM/FPKM (Reads/Fragments Per Kilobase Million): Normaliza por la longitud del gen y el tamaño total de las muestras.
+-   TPM (Transcripts Per Million): Similar a RPKM, pero mejora la comparabilidad entre muestras.
+-   DESeq2/EdgeR Scaling Factors: Ajustan los conteos para análisis estadísticos robustos.
+
+```{r}
+## Normalize
+x <- calcNormFactors(x,method = "TMM") # Trimmed mean of M-values
+x$samples$norm.factors
+```
+
+Comparación entre normalizar o no
+
+```{r}
+x2 <- x
+x2$samples$norm.factors <- 1
+x2$counts[,1] <- ceiling(x2$counts[,1]*0.05)
+x2$counts[,2] <- x2$counts[,2]*5
+
+```
+
+Visualización:
+
+```{r}
+col <- c("#A6CEE3","#1F78B4","#B2DF8A","#33A02C","#FB9A99","#E31A1C","#FDBF6F","#FF7F00","#CAB2D6")
+par(mfrow=c(1,2))
+lcpm <- cpm(x2, log=TRUE)
+boxplot(lcpm, las=2, col=col, main="")
+title(main="A. Example: Unnormalised data",ylab="Log-cpm")
+x2 <- calcNormFactors(x2)  
+x2$samples$norm.factors
+
+lcpm <- cpm(x2, log=TRUE)
+boxplot(lcpm, las=2, col=col, main="")
+title(main="B. Example: Normalised data",ylab="Log-cpm")
+```
+
+### 2.6 Unsupervised clustering of samples
+
+-   Usar una MultiDimensional Scaling plot (MDS): esta muestra la similitudes y disimilitudes entre las muestras con algoritmo no supervisado. La primera dimensión representa el fold-change que mejor separa a las muestras y que explica la mayor proporción de la variancia de los datos. Aquí nos podemos dar cuenta si se deben de hacer algunas correcciones del *batch*.
+
+```{r}
+lcpm <- cpm(x, log=TRUE)
+
+## Define colors
+par(mfrow=c(1,2))
+col.group <- group
+levels(col.group) <-  RColorBrewer::brewer.pal(nlevels(col.group), "Set1")
+col.group <- as.character(col.group)
+
+## Define colors
+col.lane <- lane
+levels(col.lane) <-  RColorBrewer::brewer.pal(nlevels(col.lane), "Set2")
+col.lane <- as.character(col.lane)
+
+## Plot MDS
+plotMDS(lcpm, labels=group, col=col.group)
+title(main="A. Sample groups")
+plotMDS(lcpm, labels=lane, col=col.lane, dim=c(3,4))
+title(main="B. Sequencing lanes")
+```
+
+### 2.7 Differential expression analysis
+
+#### 2.7.1 Create a matrix
+
+Genes que están expresados en diferentes niveles. Los modelos lineales se ajustan a los datos bajo la asunción de que los datos siguen una distribución normal (lo cual no es cierto porque siguen una distribución binomial negativa o una de poisson).
+
+Este diseño experimental quita el intercepto del primer factor *group* pero un intercepto permanece con el segundo factor *lane*. **Es esencial entender cómo interpretar los coeficientes en el modelo**.
+
+```{r}
+design <- model.matrix(~0 + group + lane)
+colnames(design) <- gsub("group","",colnames(design))
+design
+
+contr.matrix <- makeContrasts(
+   BasalvsLP = Basal-LP, 
+   BasalvsML = Basal - ML, 
+   LPvsML = LP - ML, 
+   levels = colnames(design))
+contr.matrix
+```
+
+#### 2.7.2 **Removing heteroscedascity from count data**
+
+Para los datos de RNA-seq la varianza no es independiente de la media sin importar si los datos sufren una transformación logarítmica o no. Los modelos que asumen una distribución binomial negativa asumen una relación cuadrática media-varianza.
+
+El plot de `voom` ilustra la relación media-varianza. Este plot muestra una trend que decrece entre la media y la varianza como resultado de la combinación de la varianza técnica en los experimentos de secuenciación y de la varianza biológica entre las réplicas de las muestras de las diferentes poblaciones celulares.
+
+Experimentos con una variación biológica alta resultan en tendencias más planas.
+
+Experimentos con una variación biológica baja reusltan en tendencias decrecientes pronunciadas.
+
+**Si no se tienen más de 3 réplicas se opta por usar un GLM o si se desea usar un modelo específico para RNA-seq.**
+
+```{r}
+par(mfrow=c(1,2))
+v <- voom(x, design, plot=TRUE)
+v
+vfit <- lmFit(v, design)
+vfit <- contrasts.fit(vfit, contrasts=contr.matrix)
+efit <- eBayes(vfit)
+plotSA(efit, main="Final model: Mean-variance trend")
+```
+
+**Si no se tienen más de 3 réplicas se opta por usar un GLM o si se desea usar un modelo específico para RNA-seq.**
+
+```{r}
+## Adjust GLM
+x <- estimateDisp(x, design)
+fit <- glmQLFit(x, design)
+
+## Make contrast matrices
+contr.matrix <- makeContrasts(
+   BasalvsLP = Basal-LP, 
+   BasalvsML = Basal - ML, 
+   LPvsML = LP - ML, 
+   levels = colnames(design))
+contr.matrix
+
+## Fit the model
+qlf_basal_vs_lp <- glmQLFTest(fit, contrast=contr.matrix[,"BasalvsLP"])
+qlf_basal_vs_ml <- glmQLFTest(fit, contrast=contr.matrix[,"BasalvsML"])
+
+## Results
+top_basal_vs_lp <- topTags(qlf_basal_vs_lp, n=Inf)
+head(top_basal_vs_lp$table)
+top_basal_vs_ml <- topTags(qlf_basal_vs_ml, n=Inf)
+head(top_basal_vs_ml$table)
+
+## Visualización del ajuste de dispersión
+plotQLDisp(fit, main="Dispersion trend under GLM-QL")
+
+## Summary of the results
+summary(decideTests(qlf_basal_vs_lp))
+summary(decideTests(qlf_basal_vs_ml))
+```
+
+#### 2.7.1 **Examining the number of DE genes**
+
+La significancia está dada por el threshold al p-value ajustado (5%). Aunque a veces se emplea el valor del log-foldchange como threshold.
+
+```{r}
+## Using adjusted p-value
+summary(decideTests(efit))
+
+## Using log-foldchange
+tfit <- treat(vfit, lfc=1)
+dt <- decideTests(tfit)
+summary(dt)
+
+## Extract the DEG's shared between both conditions
+de.common <- which(dt[,1]!=0 & dt[,2]!=0)
+length(de.common)
+
+vennDiagram(dt[,1:2], circle.col=c("turquoise", "salmon"))
+```
+
+#### 2.7.1 **Examining individual DE genes from top to bottom**
+
+Extraer los resultados más significativos.
+
+```{r}
+## CHeck ?topTreat for more details
+basal.vs.lp <- topTreat(tfit, coef=1, n=Inf)
+
+basal.vs.ml <- topTreat(tfit, coef=2, n=Inf)
+head(basal.vs.lp)
+head(basal.vs.ml)
+```
+
+#### 2.7.1 **Useful graphical representations of differential expression results**
+
+**MD plot**
+
+```{r}
+plotMD(tfit, column=1, status=dt[,1], main=colnames(tfit)[1], 
+       xlim=c(-8,13))
+```
+
+**Volcano plot**
+
+```{r}
+#| fig.height: 8
+par(mfrow=c(1,2))
+
+plotVolcano(df = basal.vs.lp,
+            pval_col = "P.Value",
+            lfc_col = "logFC",
+            adjpval_col = "adj.P.Val",
+            plot_title = "Basal vs. LP")
+
+plotVolcano(df = basal.vs.ml,
+            pval_col = "P.Value",
+            lfc_col = "logFC",
+            adjpval_col = "adj.P.Val",
+            plot_title = "Basal vs. LP")
+```
+
+**Heatmap**
+
+```{r}
+#| fig.height: 9
+## Basal vs. LP heatmap
+basal.vs.lp.topgenes <- basal.vs.lp$ENTREZID[1:100]
+i <- which(v$genes$ENTREZID %in% basal.vs.lp.topgenes)
+
+hmap.palette <- colorRampPalette(c("red", "white", "blue"))
+pheatmap::pheatmap(lcpm[i,],
+                   scale = "row",
+                   cluster_rows = TRUE,
+                   labels_row = v$genes$SYMBOL[i],
+                   labels_col = group,
+                   color = hmap.palette(100),
+                   main = "Basal vs. LP")
+
+## Basal vs. ML heatmap
+basal.vs.ml.topgenes <- basal.vs.ml$ENTREZID[1:100]
+i <- which(v$genes$ENTREZID %in% basal.vs.ml.topgenes)
+
+hmap.palette <- colorRampPalette(c("red", "white", "blue"))
+pheatmap::pheatmap(lcpm[i,],
+                   scale = "row",
+                   cluster_rows = TRUE,
+                   labels_row = v$genes$SYMBOL[i],
+                   labels_col = group,
+                   color = hmap.palette(100),
+                   main = "Basal vs. ML")
+```
+
+<br>
+
+## 3. DESeq2
+
+`DESeq2` es ubna librería de R que sirve para realizar experimentos de expresión diferencial. Su input es la matriz de conteos crudos resultantes de un experimento de secuenciación de *RNA-seq*.
+
+-   [Documentación (DESeq2)](https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+-   DOI: <https://doi.org/10.1186/s13059-014-0550-8>
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
+if (!require(DESeq2, quietly = TRUE))
+    BiocManager::install("DESeq2",quiet = TRUE)
+```
+
+### 3.1 Load libraries
+
+```{r}
+suppressPackageStartupMessages(library(DESeq2))
+```
+
+### 3.2 Read files
+
+```{r}
+files <- file.path(tempdir(),"GSE63310/",files)
+
+## Load all the files into a list of dataframes
+counts.list <- lapply(files, function(file) {
+    data <- read.delim(file, header = TRUE, stringsAsFactors = FALSE)
+    data[, c("EntrezID", "Count")]
+})
+names(counts.list) <- substring(basename(files), 12, nchar(basename(files)) - 4)
+
+## Merge the dataframes into a single counts matrix
+counts.mtx <- Reduce(function(x, y) {
+    merge(x, y, by = "EntrezID", all = TRUE)
+}, counts.list)
+rownames(counts.mtx) <- counts.mtx$EntrezID
+counts.mtx <- counts.mtx[, -1]
+colnames(counts.mtx) <- names(counts.list)
+```
+
+#### 3.2.1 Create metadata
+
+Es neceario que se cree un dataframe con los metadatos del experimento. Aquí una muestra de las condiciones experimentales.
+
+-   **Group**: condiciones experimentales
+
+-   **Lane**: se refiere al batch (lote, ronda de secuenciación)
+
+-   **lib.size**: se trata del total de counts registrados
+
+-   **norm.factors**: factores de normalización
+
+```{r}
+## Create metadata
+group <- as.factor(c("LP", "ML", "Basal", "Basal", "ML", "LP",
+                     "Basal", "ML", "LP"))
+lane <- as.factor(rep(c("L004","L006","L008"), c(3,4,2)))
+dds_metadata <- data.frame(group = group,
+                           lib.size = colSums(counts.mtx),
+                           norm.factors = 1,
+                           lane = lane)
+dds_metadata
+```
+
+### 3.3 Create DESeq2 object
+
+Se puede importar de diferentes fuentes. Una de ellas es usando archivos de la abundancia de transcritos con la librería `tximport`, otra es con una matriz de conteos, otra con archivos de conteos de `htseq-count` y la última de un objeto de `SummarizedExperiment`.
+
+```{r}
+## Create DESeq2 object
+dds <- DESeqDataSetFromMatrix(countData = counts.mtx,
+                              colData = dds_metadata,
+                              design = ~ group + lane)
+dds
+```
+
+### 3.4 Data pre-filter
+
+Se necesita realizar un pre filtrado de los genes que tuvieron un conteo bajo. Por un lado se reduce el tamaño que ocupa en la memoria el objeto `dds` e incrementar la velocidad de modelado de los conteos. Como valores standard se ocupa lo siguiente:
+
+-   *rows* con un mínimo de 10 *counts*.
+
+-   Usar el *smallest group size* el cual es igual al número de muestras.
+
+```{r}
+## We have 9 samples
+smallestGroupSize <- 9
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+dds
+```
+
+#### 3.4.1 Refactor metadata
+
+```{r}
+## Put the reference in the first position of the levels
+dds$group <- factor(dds$group, levels = c("Basal","LP","ML"))
+
+## Or just relevel them specifying the reference
+dds$group <- relevel(dds$group, ref = "Basal")
+```
+
+Adicionalmente se pueden colapsar todas las réplicas en columnas individuales con la función `DESeq2::collapseReplicates()` **ESTO SOLO PARA RÉPLICAS TÉCNICAS, NO PARA BIOLÓGICAS** (una réplica técnica implica múltiples corridas de secuenciación de la misma librería).
+
+#### 3.4.2 Add gene names
+
+```{r}
+genes <- AnnotationDbi::select(Mus.musculus,
+                        keys = rownames(dds),
+                        columns = c("SYMBOL","TXCHROM"),
+                        keytype = "ENTREZID")
+
+## Remove duplicates
+genes <- genes[!duplicated(genes$ENTREZID),]
+rownames(genes) <- genes$ENTREZID
+
+## Add genes
+rowData(dds) <- genes
+```
+
+### 3.5 Differential Expression Analysis
+
+Así de simple.
+
+```{r}
+dds <- DESeq(dds)
+res <- results(dds)
+res
+```
+
+Si quisiéramos extraer los genes diferencialmente expresados filtrando por el *adjusted p-value* entonces se le debe de agregar el parámetro `alpha = <float>` a la función `results()`. Por ejemplo, si queremos los DEG's que son menores o iguales a 0.05 entonces se ve así:
+
+```{r}
+res05 <- results(dds, alpha = 0.05)
+summary(res05)
+
+sum(res05$padj < 0.05, na.rm=TRUE)
+```
+
+Además, se pueden revisar las comparaciones hechas:
+
+```{r}
+resultsNames(dds)
+```
+
+#### 3.5.1 Exploring results
+
+Para la visualización se pueden "encoger" los resultados de acuerdo al efecto del tamaño. El estimador por default es *apeglm* el cual estima con una tendencia al 0, lo que promueve la estabilidad de los estimados en los cuales hay una variabilidad alta o tamaños de muestra pequeños.
+
+```{r}
+resLFC.LPBas <- lfcShrink(dds,coef = 2,type = "apeglm")
+resLFC.MLBas <- lfcShrink(dds,coef = 3,type = "apeglm")
+```
+
+**MA-plot**
+
+```{r}
+plotMA(res05, ylim=c(-2,2))
+plotMA(resLFC.LPBas, ylim=c(-2,2))
+plotMA(resLFC.MLBas, ylim=c(-2,2))
+```
+
+**Get dispersion factors**
+
+Aquí se obtienen los factores de dispersión que es similar a lo que hace la función `voom` en EdgeR. Aquí se usa la función para *Variance stabilizing transformations* (vst) la cual transforma a los datos en una escala log2 la cual ha sido normalizada con respecto al tamaño de la librería u otros factores de normalización. La finalidad de esto es eliminar la dependencia de la varianza en la media (si se trabaja con niveles de expresión, entonces genes con baja expresión tendrán una desviación estándar mayor que los genes de alta expresión debido al tipo de distribución de los datos de RNA-seq). El parámetro `blind` es TRUE por default porque este re-estima las dispersiones empleando solo un intercepto. Esto no es adecuado si se espera que la mayoría de los genes tengan grandes diferencias en sus conteos (lo que puede causar grandes estimados de dispersión por el diseño experimental y no por una diferencia biológica).
+
+```{r}
+## Variance stabilizing transformation
+vsd <- vst(dds,blind = FALSE)
+
+## Plot
+vsn::meanSdPlot(assay(vsd))
+
+```
+
+#### 3.5.2 Extract the top DEG's from top to bottom
+
+Una vez que ya se tiene la normalización con vsd, se puede proceder a extraer los DEG's de interés para cada una de las comparaciones.
+
+```{r}
+## Extract the results for each condition
+res_LP_vs_Basal <- results(dds, contrast = c("group", "LP", "Basal"))
+res_ML_vs_Basal <- results(dds, contrast = c("group", "ML", "Basal"))
+
+## Add gene names
+res_LP_vs_Basal$SYMBOL <- rowData(dds[rownames(res_LP_vs_Basal)])$SYMBOL
+res_ML_vs_Basal$SYMBOL <- rowData(dds[rownames(res_ML_vs_Basal)])$SYMBOL
+res_LP_vs_Basal$ENTREZID <- rowData(dds[rownames(res_LP_vs_Basal)])$ENTREZID
+res_ML_vs_Basal$ENTREZID <- rowData(dds[rownames(res_ML_vs_Basal)])$ENTREZID
+
+## Filter the results
+res_LP_vs_Basal_sig <- res_LP_vs_Basal[which(res_LP_vs_Basal$padj < 0.05), ]
+res_LP_vs_Basal_sig <- res_LP_vs_Basal_sig[order(res_LP_vs_Basal_sig$padj, decreasing = FALSE), ]
+
+res_ML_vs_Basal_sig <- res_ML_vs_Basal[which(res_ML_vs_Basal$padj < 0.05), ]
+res_ML_vs_Basal_sig <- res_ML_vs_Basal_sig[order(res_ML_vs_Basal_sig$padj, decreasing = FALSE), ]
+```
+
+**Volcano plot**
+
+```{r}
+#| fig.height: 8
+par(mfrow=c(1,2))
+
+plotVolcano(df = res_LP_vs_Basal_sig,
+            pval_col = "pvalue",
+            lfc_col = "log2FoldChange",
+            adjpval_col = "padj",
+            plot_title = "Basal vs. LP")
+
+plotVolcano(df = res_ML_vs_Basal_sig,
+            pval_col = "pvalue",
+            lfc_col = "log2FoldChange",
+            adjpval_col = "padj",
+            plot_title = "Basal vs. ML")
+```
+
+**Heatmap**
+
+```{r}
+#| fig.height: 9
+## Basal vs. LP heatmap
+basal.vs.lp.topgenes.deseq <- res_LP_vs_Basal_sig$ENTREZID[1:100]
+i <- which(rowData(dds)$ENTREZID %in% basal.vs.lp.topgenes.deseq)
+
+hmap.palette <- colorRampPalette(c("red", "white", "blue"))
+pheatmap::pheatmap(assay(vsd)[i,],
+                   scale = "row",
+                   cluster_rows = TRUE,
+                   labels_row = rowData(dds[i])$SYMBOL,
+                   labels_col = group,
+                   color = hmap.palette(100),
+                   main = "Basal vs. LP")
+
+## Basal vs. ML heatmap
+basal.vs.ml.topgenes.deseq <- res_ML_vs_Basal_sig$ENTREZID[1:100]
+i <- which(rowData(dds)$ENTREZID %in% basal.vs.ml.topgenes.deseq)
+
+hmap.palette <- colorRampPalette(c("red", "white", "blue"))
+pheatmap::pheatmap(assay(vsd)[i,],
+                   scale = "row",
+                   cluster_rows = TRUE,
+                   labels_row = rowData(dds[i])$SYMBOL,
+                   labels_col = group,
+                   color = hmap.palette(100),
+                   main = "Basal vs. ML")
+```
+
+<br>
+
+## 4. pyDESeq2
+
+Este es una librería de Pyhton la cual pretende implementar la librería original de R `DESeq2` para el análisis de expresión diferencial con datos de *bulk RNA-seq*. Como es una implementación desde 0, hay algunos cambios importantes en términos de las funciones y de los valores que estas regresan.
+
+-   [Documentación (pyDESeq2)](https://pydeseq2.readthedocs.io/en/stable/)
+-   DOI: <https://doi.org/10.1093/bioinformatics/btad547>
+
+```{bash}
+#| eval: false
+pip install pydeseq2
+
+## Using conda
+conda env create -n pydeseq2
+conda activate pydeseq2
+pip install pydeseq2
+```
+
+### 4.1 Load libraries
+
+```{r}
+#| include: false
+library(reticulate)
+use_python("C:/Users/chomb/AppData/Local/Programs/Python/Python312/python.exe")
+```
+
+```{python}
+import re
+import numpy as np
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# %pip install sanbomics
+from sanbomics.plots import volcano
+from sanbomics.tools import id_map
+
+# %pip install pydeseq2
+from pydeseq2.dds import DeseqDataSet
+from pydeseq2.default_inference import DefaultInference
+from pydeseq2.ds import DeseqStats
+
+# %pip install scanpy
+import scanpy as sc
+```
+
+### 4.2 Read files
+
+```{python}
+## Import R files variable to python
+files = r.files
+
+## Empty df
+dfs = []
+
+## Read files
+for file in files:
+    df = pd.read_csv(file, sep="\t",usecols = ["EntrezID","Count"])
+    column_name = file.split("/")[-1].replace(".txt","")
+    column_name = re.sub(r"^GSM15455\d{2}_", "", column_name)
+    df.rename(columns={"Count": column_name}, inplace=True)
+    
+    dfs.append(df)
+
+## Create the matrix
+merged_matrix = pd.concat(
+    [df.set_index("EntrezID") for df in dfs], axis=1
+).fillna(0)
+```
+
+#### 4.2.1 Create metadata
+
+```{python}
+metadata = r.dds_metadata
+```
+
+#### 4.2.2 Add genes
+
+```{python}
+genes = r.genes
+```
+
+#### 4.2.3 Pre-filter counts
+
+```{python}
+## We have 9 samples
+smallest_group_size = 9
+keep = np.sum(merged_matrix >= 10, axis=1) >= smallest_group_size
+merged_matrix = merged_matrix[keep].copy()
+```
+
+### 4.3 Create pyDESeq2 object
+
+```{python}
+#| warnings: false
+## Create DESeq2 object
+inference = DefaultInference(n_cpus = 8)
+dds = DeseqDataSet(
+    counts = merged_matrix.T,
+    metadata = metadata,
+    design_factors = ['group', 'lane'],
+    inference = inference
+)
+dds.var = genes
+```
+
+### 4.4 Differential Expression Analysis
+
+```{python}
+## Run DESeq2
+dds.deseq2()
+
+## Retrieve stats
+result = DeseqStats(dds,inference = inference)
+basal_vs_lp = DeseqStats(dds, contrast=["group", "Basal", "LP"], inference=inference)
+basal_vs_ml = DeseqStats(dds, contrast=["group", "Basal", "ML"], inference=inference)
+
+## Extract the results
+result.summary()
+res = result.results_df
+basal_vs_lp.summary()
+basal_vs_lp_res = basal_vs_lp.results_df
+basal_vs_ml.summary()
+basal_vs_ml_res = basal_vs_ml.results_df
+```
+
+#### 4.4.1 Add gene names
+
+```{python}
+## Add the genes information
+res = res.merge(dds.var,left_index=True,right_index=True)
+basal_vs_lp_res = basal_vs_lp_res.merge(dds.var,left_index=True,right_index=True)
+basal_vs_ml_res = basal_vs_ml_res.merge(dds.var,left_index=True,right_index=True)
+
+## Sort by adjusted p-value
+basal_vs_lp_res = basal_vs_lp_res.sort_values(by='padj', ascending=True)
+basal_vs_ml_res = basal_vs_ml_res.sort_values(by='padj', ascending=True)
+```
+
+#### 4.4.2 Exploring results
+
+**MA-plot**
+
+```{python}
+## MA-plot
+plt.figure(figsize=(8, 6))
+sns.scatterplot(
+    x=res["baseMean"],
+    y=res["log2FoldChange"],
+    hue=res["padj"] < 0.05,  # Highlight significant points
+    palette={True: "blue", False: "gray"},
+    alpha=0.6,
+)
+plt.axhline(0, color="black", linestyle="--", linewidth=1)
+plt.xscale("log")
+plt.xlabel("Mean Normalized Counts")
+plt.ylabel("Log2 Fold Change")
+plt.title("MA Plot")
+plt.legend(title="Significant", labels=["Yes", "No"])
+plt.tight_layout()
+plt.show()
+```
+
+**PCA**
+
+```{python}
+sc.tl.pca(dds)
+
+## Group PCA
+sc.pl.pca(dds, color='group', size=200, annotate_var_explained=True,legend_loc='best', show=True)
+
+## Lane PCA
+sc.pl.pca(dds, color='lane', size=200, annotate_var_explained=True,legend_loc='best', show=True)
+```
+
+**Volcano plot**
+
+```{python}
+#| fig_height: 8
+## Basal vs. LP volcano plot
+volcano(
+    basal_vs_lp_res,
+    symbol = 'SYMBOL',
+    to_label= 30,
+    pval_thresh = 0.05,
+    log2fc_thresh = 2.5)
+    
+## Basal vs. LP volcano plot
+volcano(
+    basal_vs_lp_res,
+    symbol = 'SYMBOL',
+    to_label= 30,
+    pval_thresh = 0.05,
+    log2fc_thresh = 2.5)
+
+```
+
+**Heatmap**
+
+```{python}
+#| fig.height: 9
+## Extract the top genes
+basal_vs_lp_topgenes = basal_vs_lp_res.ENTREZID[0:100]
+basal_vs_ml_topgenes = basal_vs_ml_res.ENTREZID[0:100]
+
+## Add log transformation counts
+dds.layers['log1p'] = np.log1p(dds.layers['normed_counts'])
+
+## Get index from significant genes
+basalvslp_sigs = dds[:, basal_vs_lp_topgenes]
+basalvsml_sigs = dds[:, basal_vs_ml_topgenes]
+
+## Create counts matrices
+grapher_blp = pd.DataFrame(
+    basalvslp_sigs.layers['log1p'].T,
+    index=basalvslp_sigs.var_names,
+    columns=basalvslp_sigs.obs_names)
+
+grapher_bml = pd.DataFrame(
+    basalvsml_sigs.layers['log1p'].T,
+    index=basalvsml_sigs.var_names,
+    columns=basalvsml_sigs.obs_names)
+
+## Define color palette
+hmap_palette = sns.diverging_palette(10, 250, as_cmap=True)
+
+## Heatmap for Basal vs. LP
+sns.clustermap(grapher_blp,
+               z_score=0,
+               cmap=hmap_palette,
+               col_cluster=True,
+               row_cluster=True,
+               xticklabels=metadata.group[grapher_bml.columns].to_list(),
+               yticklabels=basal_vs_lp_res.SYMBOL[basal_vs_lp_topgenes].to_list()).fig.suptitle('Basal vs. LP') 
+
+plt.show()
+
+## Heatmap for Basal vs. ML
+sns.clustermap(grapher_bml,
+               z_score=0,
+               cmap=hmap_palette,
+               col_cluster=True,
+               row_cluster=True,
+               xticklabels=metadata.group[grapher_bml.columns],
+               yticklabels=basal_vs_ml_res.SYMBOL[basal_vs_ml_topgenes].to_list()).fig.suptitle('Basal vs. ML') 
+
+plt.show()
+```
+
+<br>
+
+## 5. Comparación
+
+### **5.1 edgeR**
+
+-   **Método principal:**\
+    Utiliza modelos lineales generalizados (GLM) basados en la distribución binomial negativa.
+
+-   **Normalización:**\
+    Realiza la normalización utilizando el método de la **media recortada ponderada de la razón (TMM)**. Este método ajusta los efectos de composición entre muestras.
+
+-   **Estadísticas diferenciales:**\
+    Estima la dispersión biológica para cada gen y utiliza un enfoque Bayesiano empírico para estabilizar estas estimaciones, mejorando la precisión en experimentos con pocos replicados.
+
+-   **Casos de uso:**
+
+    -   Ideal para datos con pocas réplicas biológicas.
+
+    -   Muy robusto frente a variaciones en la profundidad de secuenciación.
+
+### **5.2 DESeq2**
+
+-   **Método principal:**\
+    Basado en la distribución binomial negativa, modela los datos de conteo utilizando un enfoque de regresión GLM, similar a edgeR. Sin embargo, DESeq2 implementa un procedimiento más detallado para la estimación de dispersión.
+
+-   **Normalización:**\
+    Utiliza el método de **razón geométrica** para calcular factores de escala, que corrigen las diferencias de tamaño de biblioteca entre muestras.
+
+-   **Estadísticas diferenciales:**
+
+    -   Estima la dispersión utilizando un modelo empírico y luego ajusta estos valores utilizando un enfoque Bayesiano para estabilizar las varianzas.
+
+    -   Implementa un procedimiento de "shrinkage" para los coeficientes del modelo, lo que mejora la robustez en genes de baja expresión.
+
+-   **Casos de uso:**
+
+    -   Preferido para datos con un número moderado a grande de réplicas.
+
+    -   Mejora la detección de genes diferencialmente expresados con bajos conteos.
+
+### **5.3 pyDESeq2**
+
+-   **Método principal:**\
+    Es una implementación en Python basada en **DESeq2**. Internamente utiliza las mismas bases teóricas y estadísticas, ya que está diseñado para ofrecer la misma funcionalidad en un entorno Python.
+
+-   **Normalización y estadística:**
+
+    -   Reproduce la normalización basada en razones geométricas y los modelos de regresión GLM con dispersión ajustada Bayesiana.
+
+    -   La diferencia clave está en que facilita la integración con bibliotecas y pipelines en Python, como pandas y scikit-learn.
+
+-   **Casos de uso:**
+
+    -   Ideal para usuarios que trabajan en ecosistemas Python y no desean depender de R.
+
+    -   Útil en pipelines integrados con otras herramientas de aprendizaje automático o análisis avanzado.
+
+### 5.4 Resumen
+
+| Aspecto | edgeR | DESeq2 | pyDESeq2 |
+|----|----|----|----|
+| Base estadística | Binomial negativa + GLM | Binomial negativa + GLM | Igual que DESeq2 |
+| Normalización | TMM | Razón geométrica | Igual que DESeq2 |
+| Ajuste Bayesiano | Sí (dispersión) | Sí (dispersión y shrinkage) | Igual que DESeq2 |
+| Facilidad de uso | R | R | Python |
+| Casos recomendados | Pocas réplicas | Réplicas moderadas o altas | Usuarios de Python |
+
+### 5.5 Resultados obtenidos
+
+Hay que recordar que `pyDESeq2` es una librería emergente que trata de implementar la librería original de R `DESeq2` en Python. Los resultados muestran una similitud de 86 y 84 genes cuando se comparan las librerías de R `DESeq2` y `edgeR` mientras que se encuentra sólo 1 gen compartido con los resultados de `pyDESeq2`. Esto mayormente puede deberse a la implementación dada. Sin embargo, no hay que descartar que esten ahí hasta una posterior confirmación (probablemente sólo estén rankeados diferente). Por eso la recomendación es que se sigan usando las librerías de R hasta que se logre hacer una transición completa a Python en términos del análisis transcriptómico.
+
+```{r}
+#| echo: false
+suppressPackageStartupMessages(library(ggVennDiagram))
+
+## Basal vs. LP
+blp.edger <- basal.vs.lp.topgenes
+blp.deseq <- basal.vs.lp.topgenes.deseq
+blp.pydeseq <- c(py$basal_vs_lp_topgenes)
+
+## Basal vs. ML
+bml.edger <- basal.vs.ml.topgenes
+bml.deseq <- basal.vs.ml.topgenes.deseq
+bml.pydeseq <- c(py$basal_vs_ml_topgenes)
+
+## Create a list for the Venn Diagram
+blp <- list(
+    EdgeR = blp.edger,
+    DESeq2 = blp.deseq,
+    pyDESeq2 = blp.pydeseq
+)
+
+ggVennDiagram(blp,label_alpha = 0) + 
+    ggplot2::scale_fill_distiller(palette = "Spectral") +
+    ggplot2::ggtitle("Basal vs. LP")
+
+bml <- list(
+    EdgeR = bml.edger,
+    DESeq2 = bml.deseq,
+    pyDESeq2 = bml.pydeseq
+)
+
+ggVennDiagram(bml,label_alpha = 0) + 
+    ggplot2::scale_fill_distiller(palette = "Spectral") +
+    ggplot2::ggtitle("Basal vs. ML")
+```
+
+<br>
+
+## Reproducibilidad
+
+### R
+
+```{r}
+#| echo: false
+sessioninfo::session_info()
+```
+
+### Python
+
+```{python}
+#| echo: false
+import session_info
+
+session_info.show()
+```

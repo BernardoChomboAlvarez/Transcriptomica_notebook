@@ -11,6 +11,7 @@ format:
     self-contained: true
     toc: true
     toc-expand: true
+    toc-depth: 4
     theme: flatly
     highlight-style: monokai
     code-fold: false
@@ -42,4 +43,501 @@ knitr:
     kable: true
 ---
 
-prueba 1
+## 1. Análisis funcional
+
+Un análisis de expresión documental deja como resultado a los genes diferencialmente expresados en la comparación de dos o más condiciones. Sin embargo, se necesita asignarles un significado biológico que explique el fenotipo de interés. Para ello se puede hacer lo siguiente:
+
+-   Determinar si hay algún enriquecimiento de funciones biológicas, interacciones o vías de señalización conocidas.
+
+-   Identificar genes implicados en nuevas vías y redes mediante la agrupación de genes basado en sus tendencias.
+
+-   Uso de cambios globales de expresión génica en el contexto de interacción con datos externos.
+
+Existen múltiples herramientas que dpeenden de diferentes técnicas y se pueden categorizar en tres diferentes tipos principales como sobre-representación, scoring de la clase funcional y topología de vías.
+
+### 1.1 Análisis de sobre-representación
+
+Las bases de datos de las herramientas que siguen este principio contienen información de la función del gen y sus interacciones. Estas bases de datos categorizan a los genes en grupos (***gene sets***) basados en una función, vía o presencia en una ubicación celular específica compartida.
+
+Para determinar si los genes están sobre-representados o no, se calcula la probabilidad de tener una proporción observada de genes pertenecientes a una categoría específica basada en la proporción de genes asociados a la misma categoría en un set de genes de referencia.
+
+| Genes categories | Organism-specific Background | DE results | Over-represented? |
+|----|----|----|----|
+| Functional category 1 | 35/13000 | 25/1000 | Likely |
+| Functional category 2 | 56/13000 | 4/1000 | Unlikely |
+| Functional category 3 | 90/13000 | 8/1000 | Unlikely |
+| Functional category 4 | 15/13000 | 10/1000 | Likely |
+| ... | ... | ... | ... |
+
+La prueba estadística que va a determinar si algo esta sobre-representado o no es la **prueba hipergeométrica**.
+
+#### 1.1.1 Prueba hipergeométrica
+
+Una distribución hipergeométrica describe la probabilidad de que 25 genes (*k*) estén asociados con la "Categoría funcional 1", para todos los genes en nuestra lista de genes (*n* = 1000), de una población de todos los genes del genoma (*N* = 13,000) el cual contiene 35 genes (*K*) asociados con la "Categoría funcional 1".
+
+Para el cálculo de la probabilidad es la siguiente fórmula:
+
+$$
+P(X = k) = \frac{\binom{K}{k} \binom{N-K}{n-k}}{\binom{N}{n}}
+$$
+
+$$
+P(X = 25) = \frac{\binom{35}{25} \binom{13,000-35}{1000-25}}{\binom{13,000}{1000}}
+$$
+
+Esta prueba resulta en un *p-value* ajustado para cada categoría probada. De aquí resulta el ***Gene Ontology project***.
+
+#### 1.1.2 Gene Ontology project
+
+La categorización más usada es **Gene Ontology (GO)** la cual consiste en la categorización consistente de los productos de los genes a lo largo de las bases de datos. Para esto, los términos GO se organizan en 3 categorías independientes:
+
+-   *Procesos biológicos*
+
+-   *Función molecular*
+
+-   *Componente celular*
+
+Existen múltiples herramientas que son capaces de hacer Gene Ontologies:
+
+-   DAVID (<https://davidbioinformatics.nih.gov/>)
+
+-   Enrichr (<https://maayanlab.cloud/Enrichr/>)
+
+-   ShinyGO (<https://bioinformatics.sdstate.edu/go/>)
+
+-   GOstat (R)
+
+-   clusterProfiler (R)
+
+-   topGO (R)
+
+A continuación vamos a revisar las 3 diferentes librerías de R
+
+#### 1.1.3 clusterProfiler
+
+Funciona mejor con los Ensembl IDs.
+
+```{r}
+#| echo: false
+#| eval: true
+
+load("c:/Users/chomb/Desktop/TranscriptomicaProject.RData")
+
+```
+
+Install libraries
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
+if (!require(DOSE, quietly = TRUE))
+    BiocManager::install("DOSE",quiet = TRUE)
+if (!require(pathview, quietly = TRUE))
+    BiocManager::install("pathview",quiet = TRUE)
+if (!require(clusterProfiler, quietly = TRUE))
+    BiocManager::install("clusterProfiler",quiet = TRUE)
+```
+
+Load libraries
+
+```{r}
+## Load libraries
+library(DOSE)
+library(pathview)
+library(clusterProfiler)
+library(AnnotationHub)
+library(GenomicFeatures)
+library(org.Mm.eg.db)
+library(enrichplot)
+```
+
+Extract DEG's
+
+-   5xFAD_female_cortex_12mon vs. WT_female_cortex_12mon
+
+```{r}
+## Load DEG's
+comparison <- dds_list[["5xFADfemalecortex12mon_VS_WTfemalecortex12mon"]]
+
+## Extract the 100 top genes
+genes <- comparison$`100topgenes`
+```
+
+Merge Annotation with DEG's
+
+```{r}
+## Extract genes
+annotations <- AnnotationDbi::select(org.Mm.eg.db,
+                                     keys = genes,
+                                     columns = c("ENSEMBL","SYMBOL","ENTREZID","GO"),
+                                     keytype = "ENSEMBL")
+```
+
+Run clusterProfiler
+
+```{r}
+## Run GO enrichment analysis 
+ego <- enrichGO(gene = as.character(genes), 
+                universe = as.character(rownames(comparison$result_ful)),
+                keyType = "ENSEMBL",
+                OrgDb = org.Mm.eg.db, 
+                ont = "BP", 
+                pAdjustMethod = "BH", 
+                qvalueCutoff = 0.05, 
+                readable = TRUE)
+
+## Generate the summary
+cluster_summary <- data.frame(ego)
+head(cluster_summary)
+```
+
+Visualizing results
+
+-   barplot
+
+```{r}
+#| fig.height: 12
+
+## Barplot
+barplot(ego,
+        showCategory = 50,
+        font.size = 6,
+        label_format = 65)
+```
+
+-   dotplot
+
+```{r}
+#| fig.height: 12
+
+## Dotplot
+dotplot(ego,
+        showCategory=50,
+        font.size = 6,
+        label_format = 65)
+```
+
+-   enrichment GO plot
+
+```{r}
+#| fig.height: 12
+
+## enrichment GO plot
+ego <- enrichplot::pairwise_termsim(ego)
+emapplot(ego,
+         showCategory = 50)
+```
+
+-   Net plot
+
+```{r}
+#| fig.height: 12
+
+## cnet plot
+sig.degs <- as.data.frame(comparison$result_sig[1:100,])
+degs.lfc <- sig.degs$log2FoldChange
+names(degs.lfc) <- rownames(sig.degs)
+cnetplot(ego,
+         categorySize = "pvalue",
+         showCategory = 10,
+         foldChange = degs.lfc,
+         vertex.label.font = 6)
+```
+
+-   Heatmap-like plot
+
+```{r}
+#| fig.height: 4
+
+## Heatmap-like plot
+heatplot(ego,
+         foldChange = degs.lfc,
+         showCategory = 5) +
+    ggplot2::scale_color_manual(RColorBrewer::brewer.pal(11, "RdBu"))
+```
+
+-   Tree plot
+
+```{r}
+#| fig.height: 12
+
+## Tree plot
+ego2 <- enrichplot::pairwise_termsim(ego)
+treeplot(ego2, hclust_method = "average")
+```
+
+### 1.2 Scoring de clases funcionales
+
+*Functional class scoring* (FCS) como **GSEA** (Gene Set Enrichment Analysis) usan la estadística a nivel de genes o los log2 fold changes para todos los genes diferencialmente expresados. Después se revisa si diferentes vías biológicas están enriquecidas entre los diferentes fold changes.
+
+La hipótesis que siguen es que no sólo se consideran los genes siginificativos por su efecto individual, sino todos los genes porque en conjunto pueden tener un efecto pobre pero coordinado por su compartir vías y funcionalidad.
+
+Para esto también se puede usar `clusterProfiler` y funciona mejor si se trabaja con Entrez IDs.
+
+#### 1.2.1 GSEA
+
+El Análisis de Enriquecimiento de Conjuntos de Genes (GSEA, por sus siglas en inglés) es un método utilizado para determinar si un conjunto de genes muestra diferencias estadísticamente significativas entre dos estados biológicos. Se usa con frecuencia para identificar rutas, conjuntos de genes o anotaciones funcionales que están enriquecidos en un conjunto específico de genes, generalmente derivados de datos de RNA-seq, datos de microarrays u otros datos ómicos.
+
+#### 1.2.2 clusterProfiler
+
+Extract the Entrez IDs from the whole DEA result
+
+```{r}
+## Extract DEA results
+dea.res <- as.data.frame(comparison$result_sig)
+dea.res.genes <- rownames(dea.res)
+```
+
+Extract annotations
+
+```{r}
+## Retrieve annotations
+annotations <- AnnotationDbi::select(org.Mm.eg.db,
+                                     keys = dea.res.genes,
+                                     columns = c("ENSEMBL","SYMBOL","ENTREZID"),
+                                     keytype = "ENSEMBL")
+
+annotations <- annotations[!duplicated(annotations$ENSEMBL),]
+rownames(annotations) <- annotations$ENSEMBL
+
+dea.res <- merge(dea.res,annotations,by = "row.names",all = TRUE)
+rownames(dea.res) <- dea.res$ENSEMBL
+
+## Extract Entrez IDs
+entrez.ids <- dea.res$ENTREZID
+names(entrez.ids) <- rownames(dea.res)
+entrez.ids <- entrez.ids[!duplicated(entrez.ids)]
+```
+
+Extract fold changes
+
+```{r}
+## Extract fold-changes
+dea.res.lfc <- dea.res$log2FoldChange
+names(dea.res.lfc) <- dea.res$ENTREZID
+dea.res.lfc <- dea.res.lfc[entrez.ids]
+dea.res.lfc <- sort(dea.res.lfc,decreasing = TRUE)
+```
+
+#### 1.2.3 KEGG gene sets
+
+```{r}
+## GSEA using KEGG
+gseaKEGG <- gseKEGG(geneList = dea.res.lfc,
+                    organism = "mmu",
+                    nPerm = 1000,
+                    minGSSize = 20,
+                    pvalueCutoff = 0.05,
+                    verbose = FALSE)
+
+## Extract results
+gseaKEGG.res <- gseaKEGG@result
+```
+
+Explore GSEA results
+
+-   GSEA plot
+
+```{r}
+## GSEA plot for phagosome
+gseaplot(gseaKEGG, geneSetID = "mmu04145")
+```
+
+-   Pathway
+
+```{r}
+#| eval: false
+
+## Pathway
+pathview(gene.data = dea.res.lfc,
+         pathway.id = "mmu04145",
+         species = "mmu",
+         limit = list(gene = 2,
+                      cpd = 1))
+```
+
+<img src="../images/mmu04145.pathview.png" alt="Description of image" width="700px"/>
+
+-   dotplot
+
+```{r}
+#| fig.height: 8
+
+dotplot(gseaKEGG,
+        color = "pvalue",
+        showCategory=50,
+        font.size = 10,
+        label_format = 65)
+```
+
+-   ridgeplot
+
+```{r}
+#| fig.height: 12
+
+## ridgeplot
+ridgeplot(gseaKEGG,
+          showCategory = 50,
+          fill = "pvalue")
+```
+
+-   multiple GSEA plot
+
+```{r}
+#| fig.height: 8
+
+## multiple GSEA plots
+gseaplot2(gseaKEGG, geneSetID = 1:5)
+```
+
+#### 1.2.4 KEGG with Gene Ontology
+
+```{r}
+## GSEA with KEGG database and Gene Ontology terms
+gseaGO <- gseGO(geneList = dea.res.lfc,
+                OrgDb = org.Mm.eg.db,
+                ont = "BP",
+                nPerm = 1000,
+                minGSSize = 20,
+                pvalueCutoff = 0.05,
+                verbose = FALSE)
+
+## Extract results
+gseaGO.res <- gseaGO@result
+```
+
+Explore GSEA results
+
+-   GSEA plot
+
+```{r}
+## GSEA plot for immune response
+gseaplot(gseaGO, geneSetID = "GO:0002376")
+```
+
+-   dotplot
+
+```{r}
+#| fig.height: 12
+
+dotplot(gseaGO,
+        color = "pvalue",
+        showCategory=50,
+        font.size = 6,
+        label_format = 65)
+```
+
+-   ridgeplot
+
+```{r}
+#| fig.height: 12
+
+## ridgeplot
+ridgeplot(gseaGO,
+          showCategory = 50,
+          fill = "pvalue")
+```
+
+-   GSEA plot
+
+```{r}
+#| fig.height: 8
+
+## multiple GSEA plots
+gseaplot2(gseaGO, geneSetID = 1:5)
+```
+
+### 1.3 Análisis de topología
+
+El último tipo principal de técnica de análisis funcional es el análisis de topología de rutas (pathway topology analysis). Este análisis considera la información sobre la interacción genética junto con los cambios de pliegue (fold changes) y los valores p ajustados provenientes del análisis de expresión diferencial para identificar rutas disfuncionales. Dependiendo de la herramienta utilizada, los métodos de topología de rutas exploran cómo los genes interactúan entre sí (por ejemplo, activación, inhibición, fosforilación, ubiquitinación, etc.) para determinar las estadísticas a nivel de ruta. Estos métodos utilizan el número y tipo de interacciones entre los productos génicos (nuestros genes diferencialmente expresados) y otros productos génicos para inferir la función génica o la asociación con rutas.
+
+#### 1.3.1 SPIA (Signaling Pathway Impact Analysis)
+
+Funciona mejor con Entrez IDs
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
+if (!require(SPIA, quietly = TRUE))
+    BiocManager::install("SPIA",quiet = TRUE)
+```
+
+Load libraries
+
+```{r}
+library(SPIA)
+```
+
+Extract the significant genes
+
+```{r}
+## Significant genes
+dea.res.all <- as.data.frame(comparison$result_ful)
+dea.genes.all <- rownames(dea.res.all)
+```
+
+Retrieve annotations
+
+```{r}
+## Retrieve annotations
+annotations <- AnnotationDbi::select(org.Mm.eg.db,
+                                     keys = dea.genes.all,
+                                     columns = c("ENSEMBL","SYMBOL","ENTREZID"),
+                                     keytype = "ENSEMBL")
+
+annotations <- annotations[!duplicated(annotations$ENSEMBL),]
+rownames(annotations) <- annotations$ENSEMBL
+
+dea.res.all <- merge(dea.res.all,annotations,by = "row.names",all = TRUE)
+rownames(dea.res.all) <- dea.res.all$ENSEMBL
+
+## Extract Entrez IDs
+entrez.ids.all <- dea.res.all$ENTREZID
+names(entrez.ids.all) <- rownames(dea.res.all)
+entrez.ids.all <- entrez.ids.all[!duplicated(entrez.ids.all)]
+```
+
+Extract fold changes
+
+```{r}
+## Extract fold-changes
+dea.res.all.lfc <- dea.res.all$log2FoldChange
+names(dea.res.all.lfc) <- dea.res.all$ENTREZID
+dea.res.all.lfc <- dea.res.all.lfc[entrez.ids.all]
+dea.res.all.lfc <- sort(dea.res.all.lfc,decreasing = TRUE)
+```
+
+run SPIA
+
+```{r}
+## run SPIA
+spia.res <- spia(de = dea.res.lfc,
+                 all = entrez.ids.all,
+                 organism = "mmu")
+
+spia.res <- spia.res[complete.cases(spia.res),]
+
+## Explore outputs
+head(spia.res, n=10)
+```
+
+Explore results
+
+-   Two-way evidence plot
+
+```{r}
+plotP(spia.res,threshold = 0.05)
+```
+
+## Reproducibilidad
+
+```{r}
+#| echo: false
+
+sessioninfo::session_info()
+
+```
